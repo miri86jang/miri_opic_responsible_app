@@ -12,7 +12,7 @@
     <!-- 상단 헤더 & API Key 설정 -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-indigo-700">🎯 OPIc AL 실전 튜터 (채점 모델 패치 완료)</h1>
+        <h1 class="text-2xl font-bold text-indigo-700">🎯 OPIc AL 실전 튜터 (모델 규격 완벽 통일)</h1>
         <p class="text-xs text-slate-500 mt-1">설문 → 맞춤 문제 → 마이크 녹음 → ACTFL 및 첫 문장 MP 채점</p>
       </div>
       <div class="flex items-center gap-2 w-full md:w-auto">
@@ -125,7 +125,7 @@
 
     function startTest() {
       const apiKey = localStorage.getItem('GEMINI_API_KEY') || document.getElementById('apiKeyInput').value.trim();
-      if (!apiKey) return alert('먼저 상단에 Gemini API 키를 입력하고 [저장]을 눌러주세요!');
+      if (!apiKey) return alert('먼저 상단에 Gemini API Key를 입력하고 [저장]을 눌러주세요!');
       document.getElementById('surveySection').classList.add('hidden');
       document.getElementById('testSection').classList.remove('hidden');
       renderQuestion(0);
@@ -206,10 +206,34 @@
       }
     }
 
-    async function evaluateAnswer() {
+    // gemini-2.5-flash 모델로 완벽 고정된 공통 API 호출 함수
+    async function callGeminiAPI(promptText) {
       const apiKey = localStorage.getItem('GEMINI_API_KEY') || document.getElementById('apiKeyInput').value.trim();
-      if (!apiKey) return alert('상단에 Gemini API Key를 먼저 입력하고 저장해 주세요!');
+      if (!apiKey) {
+        alert('상단에 Gemini API Key를 먼저 입력하고 저장해 주세요!');
+        throw new Error('API Key missing');
+      }
 
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: promptText }] }],
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error ? data.error.message : `HTTP Error ${res.status}`);
+      }
+
+      let rawText = data.candidates[0].content.parts[0].text.trim();
+      rawText = rawText.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+      return JSON.parse(rawText);
+    }
+
+    async function evaluateAnswer() {
       const transcript = document.getElementById('answerInput').value.trim();
       if (!transcript) return alert('답변을 녹음하거나 텍스트로 입력해 주세요.');
       if (isRecording) toggleRecording();
@@ -244,23 +268,7 @@
 }`;
 
       try {
-        // 채점 API도 최신 표준 모델 (gemini-3.8-flash)로 완벽 통일
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: "application/json" }
-          })
-        });
-
-        const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
-
-        let rawText = data.candidates[0].content.parts[0].text.trim();
-        rawText = rawText.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
-        const resultJson = JSON.parse(rawText);
-
+        const resultJson = await callGeminiAPI(prompt);
         q.attempts.push({
           attemptNum: q.attempts.length + 1,
           transcript: transcript,
