@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OPIc AL 실전 모의고사 & MP 두괄식 튜터 (초고속 DB 장착)</title>
+  <title>OPIc AL 실전 모의고사 (15문항 완벽 실전 세트)</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8">
@@ -13,10 +13,10 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-3">
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (초고속 DB 버전)</h1>
+          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (실제 시험 15문항 풀버전)</h1>
           <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">0초 로딩 완료</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">500개 빈출 문항 풀 즉시 조합 → 무한 재도전 → 회차별 성적 및 퀄리티 비교 리포트</p>
+        <p class="text-xs text-slate-500 mt-1">실제 시험과 동일한 총 15문항 구성 → 무한 재도전 → 회차별 성적 및 퀄리티 비교 리포트</p>
       </div>
       <div class="flex gap-3">
         <button onclick="resetToSurvey()" id="backToSurveyBtn" class="hidden text-xs bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-slate-300">
@@ -171,17 +171,17 @@
       </div>
 
       <button onclick="generateFastMockTest()" class="w-full bg-indigo-600 text-white font-extrabold py-4 rounded-xl hover:bg-indigo-500 transition shadow-lg text-base">
-        🚀 초고속 0초 로딩 모의고사 시작하기 →
+        🚀 15문항 실전 모의고사 시작하기 (0초 로딩) →
       </button>
     </div>
 
     <!-- ==================== STEP 2: 본 시험 및 연습 화면 ==================== -->
     <div id="testSection" class="hidden space-y-6">
       
-      <!-- 전체 문항 네비게이션 탭 -->
+      <!-- 전체 문항 네비게이션 탭 (15문항) -->
       <div class="bg-slate-100 p-3 rounded-xl space-y-2">
-        <div class="text-xs font-bold text-slate-600">📌 OPIc 전체 문항 목록 (풀이 완료한 문항은 등급이 표시됩니다)</div>
-        <div class="flex gap-1.5 flex-wrap" id="navTabs"></div>
+        <div class="text-xs font-bold text-slate-600">📌 OPIc 15문항 전체 목록 (풀이 완료한 문항은 등급이 표시됩니다)</div>
+        <div class="flex gap-1.5 flex-wrap max-h-32 overflow-y-auto p-1" id="navTabs"></div>
       </div>
 
       <!-- 문제 카드 -->
@@ -281,28 +281,62 @@
       ]
     };
 
-    // 500개 핵심 빈출 문항 풀을 압축 수록한 메인 DB (주제별 무작위 조합용)
-    const OPIC_MASTER_POOL = [
-      { category: "Q1. 자기소개 (Background)", text: "Let's start the interview. Tell me a little bit about yourself, where you live, and what you usually do in your free time." },
-      { category: "Q1. 자기소개 (Background)", text: "I'd like to know about you. Could you describe your background, your family, and your daily life?" },
-      { category: "Q2. 루틴 묘사 (Habits)", text: "You indicated in the survey that you like to go to the park. What do you usually do when you go there? Who do you go with, and what is your typical routine?" },
-      { category: "Q2. 루틴 묘사 (Habits)", text: "You mentioned that you enjoy listening to music. What kind of music do you like best? When and where do you usually listen to it?" },
-      { category: "Q2. 루틴 묘사 (Habits)", text: "Tell me about your cooking habits. What kind of food do you like to cook the most, and how do you prepare it step by step?" },
-      { category: "Q2. 루틴 묘사 (Habits)", text: "You indicated that you enjoy going to coffee shops. How often do you visit them, and what do you usually do while you are there?" },
-      { category: "Q3. 과거 경험 (Experience)", text: "Tell me about a memorable time you went to a park recently. What happened, who did you go with, and why was it so unforgettable?" },
-      { category: "Q3. 과거 경험 (Experience)", text: "Describe a time when you tried cooking a brand new recipe. What was the dish, what challenges did you face, and how did it turn out?" },
-      { category: "Q3. 과거 경험 (Experience)", text: "Tell me about an unforgettable concert or live performance you attended. Who was performing, and why did it leave such a strong impression on you?" },
-      { category: "Q3. 과거 경험 (Experience)", text: "Describe a memorable trip you took recently. Where did you go, what did you see, and what made it so special?" },
-      { category: "Q4. 심화 콤보 (Advanced)", text: "What kind of changes have you noticed in the movies or theaters you visit nowadays compared to the past? How has technology influenced them?" },
-      { category: "Q4. 심화 콤보 (Advanced)", text: "How has your taste in music changed over the years? Talk about the differences between what you listened to in the past and what you enjoy now." },
-      { category: "Q4. 심화 콤보 (Advanced)", text: "Compare how people spend their vacations nowadays with how they used to spend them in the past. What are the major differences?" },
-      { category: "Q5. 돌발/사회이슈 (Issue)", text: "Talk about recycling issues in your country. How do people sort their garbage, and what are the rules in your neighborhood?" },
-      { category: "Q5. 돌발/사회이슈 (Issue)", text: "What are the common weather patterns in your country throughout the year? Describe how the seasons have changed recently." },
-      { category: "Q5. 돌발/사회이슈 (Issue)", text: "Describe the transportation system in your city. What are the most popular ways to get around, and what problems do commuters face?" },
-      { category: "Q6. 롤플레이 (Role-play)", text: "You want to buy a new furniture item for your home. Call a furniture store, explain what you are looking for, and ask three or four questions about the delivery and warranty." },
-      { category: "Q6. 롤플레이 (Role-play)", text: "Here is a situation: You planned to meet a friend at a coffee shop, but you are running late because of unexpected traffic. Call your friend, explain your situation, and suggest two alternative plans." },
-      { category: "Q6. 롤플레이 (Role-play)", text: "You booked a hotel room for your upcoming vacation, but you need to change your reservation dates and request an ocean view room. Call the hotel customer service and make these arrangements." }
-    ];
+    // 실제 OPIc 15문항 구조에 맞춘 마스터 빈출 풀 (각 유형별 세트)
+    const OPIC_15_POOL = {
+      intro: [
+        { category: "Q1. 자기소개 (Background)", text: "Let's start the interview. Tell me a little bit about yourself, where you live, and what you usually do in your free time." },
+        { category: "Q1. 자기소개 (Background)", text: "I'd like to know about you. Could you describe your background, your family, and your daily life?" }
+      ],
+      routine1: [
+        { category: "Q2. 주제1 루틴 (Habits)", text: "You indicated in the survey that you like to go to the park. What do you usually do when you go there? Who do you go with, and what is your typical routine?" },
+        { category: "Q2. 주제1 루틴 (Habits)", text: "You mentioned that you enjoy listening to music. What kind of music do you like best? When and where do you usually listen to it?" },
+        { category: "Q2. 주제1 루틴 (Habits)", text: "Tell me about your cooking habits. What kind of food do you like to cook the most, and how do you prepare it step by step?" }
+      ],
+      place1: [
+        { category: "Q3. 주제1 장소 (Place)", text: "What does the park you usually visit look like? Describe its appearance, facilities, and why you like going there so much." },
+        { category: "Q3. 주제1 장소 (Place)", text: "Describe the kitchen or cooking area in your home. What does it look like, and what appliances do you have there?" },
+        { category: "Q3. 주제1 장소 (Place)", text: "Describe your favorite coffee shop in detail. What is the atmosphere like, and where do you usually sit?" }
+      ],
+      experience1: [
+        { category: "Q4. 주제1 과거경험 (Experience)", text: "Tell me about a memorable time you went to a park recently. What happened, who did you go with, and why was it so unforgettable?" },
+        { category: "Q4. 주제1 과거경험 (Experience)", text: "Describe a time when you tried cooking a brand new recipe. What was the dish, what challenges did you face, and how did it turn out?" },
+        { category: "Q4. 주제1 과거경험 (Experience)", text: "Tell me about an unforgettable concert or live performance you attended. Who was performing, and why did it leave such a strong impression on you?" }
+      ],
+      issue1: [
+        { category: "Q5. 주제1 돌발/이슈 (Issue)", text: "What are the common issues or changes related to parks in your country nowadays? How have they evolved over time?" },
+        { category: "Q5. 주제1 돌발/이슈 (Issue)", text: "How has people's eating habits or cooking trends changed in your country over the past few years?" }
+      ],
+      routine2: [
+        { category: "Q6. 주제2 루틴 (Habits)", text: "You indicated in the survey that you enjoy jogging. How often do you go jogging, and what do you wear or bring with you?" },
+        { category: "Q6. 주제2 루틴 (Habits)", text: "You mentioned that you like domestic travel. How often do you plan a trip, and where do you usually go?" }
+      ],
+      place2: [
+        { category: "Q7. 주제2 장소 (Place)", text: "Describe the neighborhood or park trails where you usually go jogging. What makes it a good place for exercise?" },
+        { category: "Q7. 주제2 장소 (Place)", text: "Describe a famous tourist destination in your country that you frequently visit. What can people see and do there?" }
+      ],
+      experience2: [
+        { category: "Q8. 주제2 과거경험 (Experience)", text: "Tell me about the most memorable jogging or workout session you've ever had. What made it so special or challenging?" },
+        { category: "Q8. 주제2 과거경험 (Experience)", text: "Describe an unexpected crisis or funny situation you experienced during a trip. How did you handle it?" }
+      ],
+      issue2: [
+        { category: "Q9. 주제2 돌발/이슈 (Issue)", text: "What kind of weather conditions affect people's outdoor sports or jogging routines in your country? How do people deal with it?" },
+        { category: "Q9. 주제2 돌발/이슈 (Issue)", text: "What changes have occurred in the tourism industry in your country recently?" }
+      ],
+      advanced: [
+        { category: "Q10. 난이도 심화 (Advanced)", text: "Think about the music or entertainment industry in your country. What are the major differences between the trends today and those ten years ago?" },
+        { category: "Q11. 난이도 심화 (Advanced)", text: "Talk about an memorable issue or news event related to the environment that has caught your attention recently. Why was it important?" },
+        { category: "Q12. 난이도 심화 (Advanced)", text: "Compare how people communicated with each other in the past versus today. What are the pros and cons of modern communication methods?" }
+      ],
+      roleplay1: [
+        { category: "Q13. 롤플레이 (Role-play)", text: "You want to buy a new furniture item for your home. Call a furniture store, explain what you are looking for, and ask three or four questions about the delivery and warranty." }
+      ],
+      roleplay2: [
+        { category: "Q14. 롤플레이 (Role-play)", text: "Here is a situation: You planned to meet a friend at a coffee shop, but you are running late because of unexpected traffic. Call your friend, explain your situation, and suggest two alternative plans." }
+      ],
+      roleplay3: [
+        { category: "Q15. 롤플레이 심화 (Issue/Experience)", text: "Have you ever experienced a problem with a product or service you purchased? What was the issue, how did you resolve it, and what did you learn from the experience?" }
+      ]
+    };
 
     let questions = [];
     let currentQIndex = 0;
@@ -403,38 +437,34 @@
       document.getElementById('surveySection').classList.remove('hidden');
     }
 
-    // 0초 로딩: 500문항 풀 DB에서 무작위로 5문항을 즉시 조합하여 시험 세트 구성
+    // 0초 로딩: 실제 OPIc 15문항 구조에 맞춰 각 섹션별로 문항을 정확히 조합하여 총 15문제 세트 완성
     function generateFastMockTest() {
-      const shuffled = [...OPIC_MASTER_POOL].sort(() => 0.5 - Math.random());
-      const selectedPool = shuffled.slice(0, 5);
+      const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-      questions = selectedPool.map((q, idx) => ({
+      const rawSet = [
+        getRandom(OPIC_15_POOL.intro),     // Q1
+        getRandom(OPIC_15_POOL.routine1),  // Q2
+        getRandom(OPIC_15_POOL.place1),    // Q3
+        getRandom(OPIC_15_POOL.experience1), // Q4
+        getRandom(OPIC_15_POOL.issue1),    // Q5
+        getRandom(OPIC_15_POOL.routine2),  // Q6
+        getRandom(OPIC_15_POOL.place2),    // Q7
+        getRandom(OPIC_15_POOL.experience2), // Q8
+        getRandom(OPIC_15_POOL.issue2),    // Q9
+        OPIC_15_POOL.advanced[0],          // Q10
+        OPIC_15_POOL.advanced[1],          // Q11
+        OPIC_15_POOL.advanced[2],          // Q12
+        getRandom(OPIC_15_POOL.roleplay1), // Q13
+        getRandom(OPIC_15_POOL.roleplay2), // Q14
+        getRandom(OPIC_15_POOL.roleplay3)  // Q15
+      ];
+
+      questions = rawSet.map((q, idx) => ({
         id: idx + 1,
-        category: q.category,
-        text: q.text,
-        attempts: []
-      }));
-
-      document.getElementById('surveySection').classList.add('hidden');
-      document.getElementById('testSection').classList.remove('hidden');
-      document.getElementById('backToSurveyBtn').classList.remove('hidden');
-      renderQuestion(0);
-    }
-
-    function nextQuestion() {
-      const nextIdx = (currentQIndex + 1) % questions.length;
-      renderQuestion(nextIdx);
-    }
-
-    function renderNavTabs() {
-      const nav = document.getElementById('navTabs');
-      nav.innerHTML = questions.map((q, idx) => {
-        const isCurrent = idx === currentQIndex;
-        const hasAttempt = q.attempts.length > 0;
-        const latestGrade = hasAttempt ? ` [${q.attempts[q.attempts.length - 1].result.estimated_grade}]` : '';
+        category: `Q${idx + 1}. ` + q.category.split('. ')[1], text: q.text, attempts: [] }));  document.getElementById('surveySection').classList.add('hidden'); document.getElementById('testSection').classList.remove('hidden'); document.getElementById('backToSurveyBtn').classList.remove('hidden'); renderQuestion(0); }  function nextQuestion() { const nextIdx = (currentQIndex + 1) \% questions.length; renderQuestion(nextIdx); }  function renderNavTabs() { const nav = document.getElementById('navTabs'); nav.innerHTML = questions.map((q, idx) => { const isCurrent = idx === currentQIndex; const hasAttempt = q.attempts.length > 0; const latestGrade = hasAttempt ? ` [${q.attempts[q.attempts.length - 1].result.estimated_grade}]` : '';
         return `<button onclick="renderQuestion(${idx})" 
-                  class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${isCurrent ? 'bg-indigo-600 text-white shadow' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
-                  문항 ${idx + 1}${latestGrade}
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold transition ${isCurrent ? 'bg-indigo-600 text-white shadow' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
+                  ${idx + 1}번${latestGrade}
                 </button>`;
       }).join('');
     }
@@ -570,145 +600,4 @@
 }`;
 
       try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: "application/json", temperature: 0.9 }
-          })
-        });
-
-        const data = await res.json();
-        if (!res.ok || data.error) {
-          throw new Error(data.error ? data.error.message : `HTTP Error ${res.status}`);
-        }
-
-        let rawText = data.candidates[0].content.parts[0].text.trim();
-        rawText = rawText.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
-        const resultJson = JSON.parse(rawText);
-
-        q.attempts.push({
-          attemptNum: q.attempts.length + 1,
-          transcript: transcript,
-          result: resultJson
-        });
-
-        renderNavTabs();
-        renderAttempts(q.attempts.length - 1);
-      } catch (err) {
-        alert('채점 중 오류가 발생했습니다: ' + err.message);
-      } finally {
-        hideLoading();
-      }
-    }
-
-    function renderAttempts(attemptIdx) {
-      const q = questions[currentQIndex];
-      const container = document.getElementById('feedbackContainer');
-      if (q.attempts.length === 0) {
-        container.classList.add('hidden');
-        return;
-      }
-      container.classList.remove('hidden');
-
-      const tabsEl = document.getElementById('attemptTabs');
-      tabsEl.innerHTML = q.attempts.map((att, idx) => `
-        <button onclick="renderAttempts(${idx})" 
-                class="px-3 py-1 rounded-lg text-xs font-bold transition ${idx === attemptIdx ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}">
-          #${att.attemptNum}차 시도 (${att.result.estimated_grade})
-        </button>
-      `).join('');
-
-      const item = q.attempts[attemptIdx];
-      const r = item.result;
-
-      let comparisonHtml = '';
-      if (attemptIdx > 0) {
-        const prevItem = q.attempts[attemptIdx - 1];
-        comparisonHtml = `
-          <div class="bg-indigo-50 border border-indigo-200 p-3.5 rounded-xl text-xs text-indigo-900 flex justify-between items-center">
-            <span>📈 이전 회차(#${prevItem.attemptNum}차: <b>${prevItem.result.estimated_grade}</b>) 대비 변화: 이번 회차에서 MP 구조와 유창성이 어떻게 개선되었는지 비교해 보세요!</span>
-            <span class="font-bold bg-indigo-600 text-white px-2 py-1 rounded">성장 중 🔥</span>
-          </div>
-        `;
-      }
-
-      document.getElementById('feedbackContent').innerHTML = `
-        ${comparisonHtml}
-        <div class="bg-slate-900 text-white p-5 rounded-xl flex items-center justify-between gap-4">
-          <div class="space-y-1">
-            <span class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">#${item.attemptNum}차 시도 회차별 분석 리포트</span>
-            <p class="text-sm text-slate-100 leading-relaxed">${r.overall_comment}</p>
-          </div>
-          <div class="text-center shrink-0 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700">
-            <div class="text-[10px] text-slate-400">예상 등급</div>
-            <div class="text-3xl font-black text-amber-400">${r.estimated_grade}</div>
-          </div>
-        </div>
-
-        <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-xs text-slate-600">
-          <span class="font-bold text-slate-800">🗣 내 답변 기록 (#${item.attemptNum}차):</span> "${item.transcript}"
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-          <div class="border border-slate-200 p-4 rounded-xl bg-white shadow-sm">
-            <div class="font-bold text-slate-800 mb-1.5 flex justify-between">
-              <span>🎯 1. 과제 수행</span>
-              <span class="text-indigo-600 font-extrabold">${r.actfl_evaluation.functions_tasks.score}</span>
-            </div>
-            <p class="text-slate-600 text-xs leading-relaxed">${r.actfl_evaluation.functions_tasks.feedback}</p>
-          </div>
-          <div class="border border-slate-200 p-4 rounded-xl bg-white shadow-sm">
-            <div class="font-bold text-slate-800 mb-1.5 flex justify-between">
-              <span>💡 2. 맥락/내용</span>
-              <span class="text-indigo-600 font-extrabold">${r.actfl_evaluation.context_content.score}</span>
-            </div>
-            <p class="text-slate-600 text-xs leading-relaxed">${r.actfl_evaluation.context_content.feedback}</p>
-          </div>
-          <div class="border border-slate-200 p-4 rounded-xl bg-white shadow-sm">
-            <div class="font-bold text-slate-800 mb-1.5 flex justify-between">
-              <span>🔍 3. 정확성</span>
-              <span class="text-indigo-600 font-extrabold">${r.actfl_evaluation.accuracy.score}</span>
-            </div>
-            <p class="text-slate-600 text-xs leading-relaxed">${r.actfl_evaluation.accuracy.feedback}</p>
-          </div>
-          <div class="border border-slate-200 p-4 rounded-xl bg-white shadow-sm">
-            <div class="font-bold text-slate-800 mb-1.5 flex justify-between">
-              <span>🧱 4. MP 두괄식 & 텍스트 유형</span>
-              <span class="text-indigo-600 font-extrabold">${r.actfl_evaluation.text_type.score}</span>
-            </div>
-            <p class="text-slate-600 text-xs leading-relaxed">${r.actfl_evaluation.text_type.feedback}</p>
-          </div>
-        </div>
-
-        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
-          <div class="font-bold text-amber-900 text-sm mb-2">🚀 AL 등급 점프를 위한 MP 선제시 개선 포인트</div>
-          <ul class="list-disc pl-5 space-y-1 text-amber-800 text-xs leading-relaxed">
-            ${r.al_upgrade_points.map(pt => `<li>${pt}</li>`).join('')}
-          </ul>
-        </div>
-
-        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-2">
-          <div class="flex justify-between items-center">
-            <div class="font-bold text-emerald-900 text-sm">✨ 첫 문장 MP 선제시 AL 모범 스크립트</div>
-            <button onclick="speakModelAnswer(\`${r.al_model_answer.replace(/`/g, "'").replace(/"/g, '&quot;')}\`)" 
-                    class="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded hover:bg-emerald-500 font-semibold">
-              🔊 모범답안 발음 듣기
-            </button>
-          </div>
-          <p class="text-emerald-900 text-xs leading-relaxed italic">"${r.al_model_answer}"</p>
-        </div>
-      `;
-    }
-
-    function speakModelAnswer(text) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US';
-      u.rate = 0.95;
-      window.speechSynthesis.speak(u);
-    }
-  </script>
-</body>
-</html>
+        const res = await fetch(`
