@@ -13,8 +13,8 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-3">
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (최신 3.8 모델 패치)</h1>
-          <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">완벽 통합 버전</span>
+          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (진행바 장착 버전)</h1>
+          <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">UX 최적화 완료</span>
         </div>
         <p class="text-xs text-slate-500 mt-1">실제 설문조사 → 맞춤 전체 문항 출제 → 첫 문장 MP 정밀 채점 및 회차별 비교</p>
       </div>
@@ -36,6 +36,24 @@
                class="border rounded-lg px-3 py-1.5 w-full font-mono text-slate-600">
         <button onclick="saveApiKey()" class="bg-slate-800 text-white px-4 py-1.5 rounded-lg shrink-0">저장</button>
         <button onclick="toggleApiModal()" class="bg-slate-200 text-slate-700 px-4 py-1.5 rounded-lg shrink-0">닫기</button>
+      </div>
+    </div>
+
+    <!-- ==================== 로딩 프로그레스 바 모달/오버레이 ==================== -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
+        <div class="inline-block p-3 bg-indigo-50 rounded-full text-indigo-600 animate-bounce">
+          🎯
+        </div>
+        <div class="space-y-1">
+          <h3 id="loadingTitle" class="text-base font-bold text-slate-900">AI가 작업을 처리하고 있습니다</h3>
+          <p id="loadingDesc" class="text-xs text-slate-500">잠시만 기다려 주세요. (보통 5~15초 소요됩니다)</p>
+        </div>
+        <!-- 프로그레스 바 디자인 -->
+        <div class="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5 border">
+          <div id="progressBar" class="bg-indigo-600 h-full rounded-full transition-all duration-300 w-[10%] animate-pulse"></div>
+        </div>
+        <div id="loadingStep" class="text-[11px] font-semibold text-indigo-600">설문 분석 및 프롬프트 구성 중...</div>
       </div>
     </div>
 
@@ -65,12 +83,12 @@
           <div class="font-bold text-sm text-slate-800">1. 현재 귀하는 어느 분야에 종사하고 계십니까?</div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
             <label class="flex items-center gap-2 p-2 bg-white rounded-lg border cursor-pointer hover:bg-slate-50">
-              <input type="radio" name="q1_job" value="사업/회사 (Business)" onchange="handleJobChange()">
+              <input type="radio" name="q1_job" value="사업/회사 (Business)">
               <span>사업 / 회사</span>
             </label>
             <label class="flex items-center justify-between p-2 bg-amber-50/60 rounded-lg border border-amber-300 cursor-pointer hover:bg-amber-50 md:col-span-2">
               <div class="flex items-center gap-2">
-                <input type="radio" name="q1_job" value="일 경험 없음 (No work experience)" onchange="handleJobChange()">
+                <input type="radio" name="q1_job" value="일 경험 없음 (No work experience)">
                 <span class="font-bold text-slate-800">일 경험 없음 (까다로운 비즈니스/업무 질문 원천 차단)</span>
               </div>
               <span class="bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2 py-0.5 rounded border border-amber-300 shrink-0">🔥국민추천</span>
@@ -83,7 +101,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
             <label class="flex items-center justify-between p-2 bg-amber-50/60 rounded-lg border border-amber-300 cursor-pointer hover:bg-amber-50">
               <div class="flex items-center gap-2">
-                <input type="radio" name="q2_stu" value="아니오 (강의를 들은 지 5년 이상 지남)" onchange="handleStuChange()">
+                <input type="radio" name="q2_stu" value="아니오 (강의를 들은 지 5년 이상 지남)">
                 <span class="font-bold text-slate-800">아니오 (학업 관련 질문 차단)</span>
               </div>
               <span class="bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2 py-0.5 rounded border border-amber-300 shrink-0">🔥국민추천</span>
@@ -289,6 +307,27 @@
 
     function toggleApiModal() { document.getElementById('apiModal').classList.toggle('hidden'); }
 
+    // 로딩 바 제어 함수
+    function showLoading(title, desc) {
+      document.getElementById('loadingTitle').innerText = title;
+      document.getElementById('loadingDesc').innerText = desc;
+      document.getElementById('progressBar').style.width = '30%';
+      document.getElementById('loadingStep').innerText = '구글 AI 서버와 통신 중...';
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+
+      // 가상 프로그레스 애니메이션
+      setTimeout(() => { document.getElementById('progressBar').style.width = '65%'; }, 1500);
+      setTimeout(() => { document.getElementById('progressBar').style.width = '85%'; }, 3500);
+    }
+
+    function hideLoading() {
+      document.getElementById('progressBar').style.width = '100%';
+      setTimeout(() => {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+        document.getElementById('progressBar').style.width = '10%';
+      }, 300);
+    }
+
     function renderSurveyCheckboxes() {
       const renderGroup = (containerId, list) => {
         document.getElementById(containerId).innerHTML = list.map(item => `
@@ -306,9 +345,6 @@
       renderGroup('list_sports', SURVEY_DB.sports);
       renderGroup('list_vacation', SURVEY_DB.vacation);
     }
-
-    function handleJobChange() {}
-    function handleStuChange() {}
 
     function applyPopularPreset() {
       document.querySelector('input[name="q1_job"][value*="일 경험 없음"]').checked = true;
@@ -349,7 +385,6 @@
       document.getElementById('surveySection').classList.remove('hidden');
     }
 
-    // 구글 권장 최신 표준 모델명 (gemini-3.8-flash) 적용
     async function callGeminiAPI(promptText) {
       const apiKey = localStorage.getItem('GEMINI_API_KEY') || document.getElementById('apiKeyInput').value.trim();
       if (!apiKey) {
@@ -385,9 +420,7 @@
       const items = checkedEls.map(el => el.value).join(', ');
       const level = document.querySelector('input[name="sa_level"]:checked').value;
 
-      const btn = document.getElementById('generateBtn');
-      btn.disabled = true;
-      btn.innerText = '⏳ 에바(Eva)가 실제 OPIc 전체 문항(자기소개~롤플레이)을 출제 중입니다...';
+      showLoading('OPIc 모의고사 문제 출제 중', '에바(Eva)가 설문조사를 바탕으로 전체 5개 문항을 생성하고 있습니다...');
 
       const prompt = `
 당신은 공인 ACTFL OPIc 출제 시스템입니다. 응시자의 [배경 설문조사]와 [난이도 Level ${level}]를 바탕으로, 실제 OPIc 본시험과 완벽히 동일한 **총 5개의 전체 문항**을 순서대로 출제하세요.
@@ -426,8 +459,7 @@
       } catch (err) {
         alert('모의고사 생성 중 오류가 발생했습니다:\n' + err.message);
       } finally {
-        btn.disabled = false;
-        btn.innerText = '🚀 설문 맞춤형 전체 모의고사 출제하기 (전체 문항) →';
+        hideLoading();
       }
     }
 
@@ -544,9 +576,7 @@
       if (!transcript) return alert('먼저 답변을 말씀하시거나 입력란에 적어주세요!');
       if (isRecording) toggleRecording();
 
-      const btn = document.getElementById('evalBtn');
-      btn.disabled = true;
-      btn.innerText = '⏳ ACTFL 평가관이 MP 두괄식 구조를 정밀 분석 중입니다...';
+      showLoading('ACTFL 정밀 채점 중', '평가관이 첫 문장 두괄식(MP) 구조와 4대 영역을 분석하고 있습니다...');
 
       const q = questions[currentQIndex];
       const prompt = `
@@ -586,8 +616,7 @@
       } catch (err) {
         alert('채점 중 오류가 발생했습니다: ' + err.message);
       } finally {
-        btn.disabled = false;
-        btn.innerText = '✅ 채점 및 MP 두괄식 피드백 받기';
+        hideLoading();
       }
     }
 
