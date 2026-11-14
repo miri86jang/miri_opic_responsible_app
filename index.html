@@ -13,7 +13,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-3">
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (전체 문항 & 회차별 비교)</h1>
+          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (최신 3.8 모델 패치)</h1>
           <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">완벽 통합 버전</span>
         </div>
         <p class="text-xs text-slate-500 mt-1">실제 설문조사 → 맞춤 전체 문항 출제 → 첫 문장 MP 정밀 채점 및 회차별 비교</p>
@@ -349,6 +349,7 @@
       document.getElementById('surveySection').classList.remove('hidden');
     }
 
+    // 구글 권장 최신 표준 모델명 (gemini-3.8-flash) 적용
     async function callGeminiAPI(promptText) {
       const apiKey = localStorage.getItem('GEMINI_API_KEY') || document.getElementById('apiKeyInput').value.trim();
       if (!apiKey) {
@@ -357,8 +358,7 @@
         throw new Error('API Key missing');
       }
 
-      // 최신 안정 모델 사용
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -611,7 +611,6 @@
       const item = q.attempts[attemptIdx];
       const r = item.result;
 
-      // 이전 회차와의 비교 데이터 생성
       let comparisonHtml = '';
       if (attemptIdx > 0) {
         const prevItem = q.attempts[attemptIdx - 1];
