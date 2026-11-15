@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OPIc AL 실전 모의고사 & MP 두괄식 튜터 (설문 복원 완료)</title>
+  <title>OPIc AL 실전 모의고사 & MP 두괄식 튜터 (실제 15문항 풀세트)</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8">
@@ -13,10 +13,10 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-3">
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (설문 복원 완료)</h1>
-          <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">0초 로딩 완료</span>
+          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (실제 전체 15문항)</h1>
+          <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">0초 로딩 & 15문항 완비</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">완벽 복원된 배경 설문조사 → 0초 모의고사 조합 → 무한 재도전 → 회차별 성적 비교</p>
+        <p class="text-xs text-slate-500 mt-1">배경 설문조사 → 실제 시험과 동일한 15문항 세트 → 무한 재도전 → 회차별 성적 비교</p>
       </div>
       <div class="flex gap-3">
         <button onclick="resetToSurvey()" id="backToSurveyBtn" class="hidden text-xs bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-slate-300">
@@ -134,7 +134,7 @@
         </div>
       </div>
 
-      <!-- 여가/취미/운동/휴가 4~7 (완벽 복원) -->
+      <!-- 여가/취미/운동/휴가 4~7 -->
       <div class="space-y-4">
         <div class="sticky top-2 z-10 flex justify-between items-center bg-slate-900 text-white p-3.5 rounded-xl shadow-md">
           <div>
@@ -183,16 +183,16 @@
       </div>
 
       <button onclick="generateFastMockTest()" class="w-full bg-indigo-600 text-white font-extrabold py-4 rounded-xl hover:bg-indigo-500 transition shadow-lg text-base">
-        🚀 초고속 0초 로딩 모의고사 시작하기 →
+        🚀 초고속 0초 로딩 전체 15문항 모의고사 시작하기 →
       </button>
     </div>
 
     <!-- ==================== STEP 2: 본 시험 및 연습 화면 ==================== -->
     <div id="testSection" class="hidden space-y-6">
       
-      <!-- 전체 문항 네비게이션 탭 -->
+      <!-- 전체 문항 네비게이션 탭 (15문항) -->
       <div class="bg-slate-100 p-3 rounded-xl space-y-2">
-        <div class="text-xs font-bold text-slate-600">📌 OPIc 전체 문항 목록 (풀이 완료한 문항은 등급이 표시됩니다)</div>
+        <div class="text-xs font-bold text-slate-600">📌 OPIc 전체 15문항 목록 (클릭하여 이동, 완료된 문항은 등급 표시)</div>
         <div class="flex gap-1.5 flex-wrap" id="navTabs"></div>
       </div>
 
@@ -262,7 +262,6 @@
   </div>
 
   <script>
-    // 배경 설문조사 항목 데이터베이스 완벽 복원
     const SURVEY_DB = {
       leisure: [
         { label: "영화보기", val: "영화보기 (Going to movie theaters)", rec: true },
@@ -294,26 +293,23 @@
       ]
     };
 
+    // 실제 OPIc 시험 문항 구조(자기소개 -> 루틴 -> 장소 -> 경험 -> 콤보 -> 돌발 -> 롤플레이)를 완벽 반영한 15문항 마스터 풀
     const OPIC_MASTER_POOL = [
       { category: "Q1. 자기소개 (Background)", text: "Let's start the interview. Tell me a little bit about yourself, where you live, and what you usually do in your free time." },
-      { category: "Q1. 자기소개 (Background)", text: "I'd like to know about you. Could you describe your background, your family, and your daily life?" },
       { category: "Q2. 루틴 묘사 (Habits)", text: "You indicated in the survey that you like to go to the park. What do you usually do when you go there? Who do you go with, and what is your typical routine?" },
-      { category: "Q2. 루틴 묘사 (Habits)", text: "You mentioned that you enjoy listening to music. What kind of music do you like best? When and where do you usually listen to it?" },
-      { category: "Q2. 루틴 묘사 (Habits)", text: "Tell me about your cooking habits. What kind of food do you like to cook the most, and how do you prepare it step by step?" },
-      { category: "Q2. 루틴 묘사 (Habits)", text: "You indicated that you enjoy going to coffee shops. How often do you visit them, and what do you usually do while you are there?" },
-      { category: "Q3. 과거 경험 (Experience)", text: "Tell me about a memorable time you went to a park recently. What happened, who did you go with, and why was it so unforgettable?" },
-      { category: "Q3. 과거 경험 (Experience)", text: "Describe a time when you tried cooking a brand new recipe. What was the dish, what challenges did you face, and how did it turn out?" },
-      { category: "Q3. 과거 경험 (Experience)", text: "Tell me about an unforgettable concert or live performance you attended. Who was performing, and why did it leave such a strong impression on you?" },
-      { category: "Q3. 과거 경험 (Experience)", text: "Describe a memorable trip you took recently. Where did you go, what did you see, and what made it so special?" },
-      { category: "Q4. 심화 콤보 (Advanced)", text: "What kind of changes have you noticed in the movies or theaters you visit nowadays compared to the past? How has technology influenced them?" },
-      { category: "Q4. 심화 콤보 (Advanced)", text: "How has your taste in music changed over the years? Talk about the differences between what you listened to in the past and what you enjoy now." },
-      { category: "Q4. 심화 콤보 (Advanced)", text: "Compare how people spend their vacations nowadays with how they used to spend them in the past. What are the major differences?" },
-      { category: "Q5. 돌발/사회이슈 (Issue)", text: "Talk about recycling issues in your country. How do people sort their garbage, and what are the rules in your neighborhood?" },
-      { category: "Q5. 돌발/사회이슈 (Issue)", text: "What are the common weather patterns in your country throughout the year? Describe how the seasons have changed recently." },
-      { category: "Q5. 돌발/사회이슈 (Issue)", text: "Describe the transportation system in your city. What are the most popular ways to get around, and what problems do commuters face?" },
-      { category: "Q6. 롤플레이 (Role-play)", text: "You want to buy a new furniture item for your home. Call a furniture store, explain what you are looking for, and ask three or four questions about the delivery and warranty." },
-      { category: "Q6. 롤플레이 (Role-play)", text: "Here is a situation: You planned to meet a friend at a coffee shop, but you are running late because of unexpected traffic. Call your friend, explain your situation, and suggest two alternative plans." },
-      { category: "Q6. 롤플레이 (Role-play)", text: "You booked a hotel room for your upcoming vacation, but you need to change your reservation dates and request an ocean view room. Call the hotel customer service and make these arrangements." }
+      { category: "Q3. 장소 묘사 (Place)", text: "Describe the park you visit most often. What does it look like, what are its main features, and why do you like going there?" },
+      { category: "Q4. 과거 경험 (Experience)", text: "Tell me about a memorable time you went to a park recently. What happened, who did you go with, and why was it so unforgettable?" },
+      { category: "Q5. 루틴 묘사 (Habits)", text: "You mentioned that you enjoy listening to music. What kind of music do you like best? When and where do you usually listen to it?" },
+      { category: "Q6. 장소 묘사 (Place)", text: "Where do you usually go to listen to music or buy music albums? Describe the place in detail." },
+      { category: "Q7. 과거 경험 (Experience)", text: "Tell me about an unforgettable concert or live performance you attended. Who was performing, and why did it leave such a strong impression on you?" },
+      { category: "Q8. 심화 콤보 (Advanced)", text: "What kind of changes have you noticed in the music industry or how people consume music nowadays compared to the past?" },
+      { category: "Q9. 루틴 묘사 (Habits)", text: "Tell me about your cooking habits. What kind of food do you like to cook the most, and how do you prepare it step by step?" },
+      { category: "Q10. 과거 경험 (Experience)", text: "Describe a time when you tried cooking a brand new recipe. What was the dish, what challenges did you face, and how did it turn out?" },
+      { category: "Q11. 심화 콤보 (Advanced)", text: "When you have problems or issues while cooking, how do you usually solve them? Share a specific incident." },
+      { category: "Q12. 돌발/사회이슈 (Issue)", text: "Talk about recycling issues in your country. How do people sort their garbage, and what are the rules in your neighborhood?" },
+      { category: "Q13. 돌발/사회이슈 (Issue)", text: "Describe the transportation system in your city. What are the most popular ways to get around, and what problems do commuters face?" },
+      { category: "Q14. 롤플레이 (Role-play)", text: "You want to buy a new furniture item for your home. Call a furniture store, explain what you are looking for, and ask three or four questions about the delivery and warranty." },
+      { category: "Q15. 롤플레이 (Role-play)", text: "Here is a situation: You planned to meet a friend at a coffee shop, but you are running late because of unexpected traffic. Call your friend, explain your situation, and suggest two alternative plans." }
     ];
 
     let questions = [];
@@ -358,7 +354,6 @@
       }, 300);
     }
 
-    // 여가/취미/운동/휴가 체크박스 렌더링 함수 완벽 복원
     function renderSurveyCheckboxes() {
       const renderGroup = (containerId, list) => {
         document.getElementById(containerId).innerHTML = list.map(item => `
@@ -390,7 +385,6 @@
       if (selected) sub.classList.remove('hidden');
     }
 
-    // 국민 꿀설문 세팅 원클릭 적용 완벽 복원
     function applyPopularPreset() {
       document.querySelector('input[name="q1_job"][value*="일 경험 없음"]').checked = true;
       handleJobChange();
@@ -434,12 +428,9 @@
       document.getElementById('surveySection').classList.remove('hidden');
     }
 
-    // 0초 로딩 모의고사 시작
+    // 0초 로딩: 마스터 풀에서 실제 시험과 동일한 전체 15문항을 즉시 세팅
     function generateFastMockTest() {
-      const shuffled = [...OPIC_MASTER_POOL].sort(() => 0.5 - Math.random());
-      const selectedPool = shuffled.slice(0, 5);
-
-      questions = selectedPool.map((q, idx) => ({
+      questions = OPIC_MASTER_POOL.map((q, idx) => ({
         id: idx + 1,
         category: q.category,
         text: q.text,
@@ -464,8 +455,8 @@
         const hasAttempt = q.attempts.length > 0;
         const latestGrade = hasAttempt ? ` [${q.attempts[q.attempts.length - 1].result.estimated_grade}]` : '';
         return `<button onclick="renderQuestion(${idx})" 
-                  class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${isCurrent ? 'bg-indigo-600 text-white shadow' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
-                  문항 ${idx + 1}${latestGrade}
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition ${isCurrent ? 'bg-indigo-600 text-white shadow' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
+                  ${idx + 1}번${latestGrade}
                 </button>`;
       }).join('');
     }
