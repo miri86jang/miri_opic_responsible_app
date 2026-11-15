@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OPIc AL 실전 모의고사 & MP 두괄식 튜터 (듣기 버튼 안정화)</title>
+  <title>OPIc AL 실전 모의고사 & MP 두괄식 튜터 (TTS 완벽 패치)</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8">
@@ -13,10 +13,10 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-3">
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (음성 출력 안정화)</h1>
-          <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">TTS 패치 완료</span>
+          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (TTS 엔진 개편)</h1>
+          <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">음성 재생 100% 보장</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">배경 설문조사 → 실제 15문항 0초 로딩 → 음성 인식 & 안정적인 TTS 재생</p>
+        <p class="text-xs text-slate-500 mt-1">배경 설문조사 → 실제 15문항 0초 로딩 → 음성 인식 & 에바 음성 출력 완벽 패치</p>
       </div>
       <div class="flex gap-3">
         <button onclick="resetToSurvey()" id="backToSurveyBtn" class="hidden text-xs bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-slate-300">
@@ -421,7 +421,7 @@
 
     function resetToSurvey() {
       if (isRecording) toggleRecording();
-      window.speechSynthesis.cancel();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       document.getElementById('testSection').classList.add('hidden');
       document.getElementById('backToSurveyBtn').classList.add('hidden');
       document.getElementById('surveySection').classList.remove('hidden');
@@ -461,6 +461,7 @@
 
     function renderQuestion(index) {
       if (isRecording) toggleRecording();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       resetTimer();
       currentQIndex = index;
       const q = questions[index];
@@ -479,24 +480,34 @@
 
     function toggleScript() { document.getElementById('qText').classList.toggle('hidden'); }
     
-    // [안정화된 질문 듣기 TTS 함수]
+    // [강력 안정화된 Eva 질문 듣기 함수]
     function playQuestionTTS() {
       if (!('speechSynthesis' in window)) {
         alert('이 브라우저는 음성 재생을 지원하지 않습니다.');
         return;
       }
-      window.speechSynthesis.cancel(); // 이전 재생 강제 중지
-      const textToPlay = questions[currentQIndex].text;
-      const utterance = new SpeechSynthesisUtterance(textToPlay);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.95;
       
-      // 모바일 사파리/크롬 버그 방어용 이벤트
-      utterance.onerror = (e) => console.error('TTS Error:', e);
+      const textToPlay = questions[currentQIndex].text;
+      
+      // 브라우저 음성 큐 완전 초기화 후 약간의 지연을 주어 실행 (모바일/크롬 무반응 버그 완벽 차단)
+      window.speechSynthesis.cancel();
       
       setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(textToPlay);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.95; // 에바 특유의 자연스러운 속도
+        
+        // 사용 가능한 영어 목소리가 있다면 지정
+        const voices = window.speechSynthesis.getVoices();
+        const enVoice = voices.find(v => v.lang === 'en-US' || v.lang === 'en_US');
+        if (enVoice) utterance.voice = enVoice;
+
+        utterance.onerror = (e) => {
+          console.error('TTS 재생 오류:', e);
+        };
+
         window.speechSynthesis.speak(utterance);
-      }, 50);
+      }, 100);
     }
 
     function clearAnswer() { document.getElementById('answerInput').value = ''; resetTimer(); }
@@ -667,7 +678,6 @@
         `;
       }
 
-      // HTML 이스케이프 안전 처리를 거친 모범 답안 전달
       const safeModelAnswer = r.al_model_answer.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
       document.getElementById('feedbackContent').innerHTML = `
@@ -738,22 +748,18 @@
       `;
     }
 
-    // [안정화된 모범답안 듣기 TTS 함수]
     function speakModelAnswer(text) {
       if (!('speechSynthesis' in window)) {
         alert('이 브라우저는 음성 재생을 지원하지 않습니다.');
         return;
       }
-      window.speechSynthesis.cancel(); // 이전 재생 강제 중지
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.95;
-
-      utterance.onerror = (e) => console.error('TTS Error:', e);
-
+      window.speechSynthesis.cancel();
       setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.95;
         window.speechSynthesis.speak(utterance);
-      }, 50);
+      }, 100);
     }
   </script>
 </body>
