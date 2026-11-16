@@ -14,13 +14,16 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
-          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.8.0 (TTS 증발 버그 완벽 픽스)</span>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.8.1 (1000+ 랜덤 문제은행)</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">설문조사 → 0초 15문항 → 듀얼 TTS 오디오 엔진 → 실시간 자막 → 초고속 채점 → 마이페이지</p>
+        <p class="text-xs text-slate-500 mt-1">설문 맞춤 1,000+ 랜덤 조합 출제 → 듀얼 TTS 오디오 → 실시간 자막 → 초고속 2단 채점 → 마이페이지</p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button onclick="goToMypage()" class="text-xs bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg font-bold hover:bg-indigo-500 shadow-sm flex items-center gap-1">
           👤 Go to mypage
+        </button>
+        <button onclick="shuffleNewTest()" id="reShuffleBtn" class="hidden text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-amber-400 shadow-sm">
+          🎲 새 문제 세트로 랜덤 재출제
         </button>
         <button onclick="resetToSurvey()" id="backToSurveyBtn" class="hidden text-xs bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-slate-300">
           📋 설문 다시 하기
@@ -65,18 +68,14 @@
           </button>
         </div>
 
-        <div id="bookmarkListContainer" class="overflow-y-auto space-y-4 pr-2 flex-1 text-xs">
-          <!-- 동적 렌더링 -->
-        </div>
+        <div id="bookmarkListContainer" class="overflow-y-auto space-y-4 pr-2 flex-1 text-xs"></div>
       </div>
     </div>
 
     <!-- ==================== 초고속 채점 로딩 프로그레스 바 ==================== -->
     <div id="loadingOverlay" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
-        <div class="inline-block p-3 bg-indigo-50 rounded-full text-indigo-600 animate-bounce">
-          ⚡
-        </div>
+        <div class="inline-block p-3 bg-indigo-50 rounded-full text-indigo-600 animate-bounce">⚡</div>
         <div class="space-y-1">
           <h3 id="loadingTitle" class="text-base font-bold text-slate-900">1단 핵심 채점 및 2단 비동기 생성 중</h3>
           <p id="loadingDesc" class="text-xs text-slate-500">결론(MP) 선제시 여부와 0초 지표를 즉시 계산하고 있습니다...</p>
@@ -96,7 +95,7 @@
         <div>
           <h2 class="text-base font-extrabold text-indigo-950">📋 Background Survey (배경 설문조사)</h2>
           <p class="text-xs text-indigo-800 mt-0.5">
-            실제 시험 문항입니다. 스크립트 방어에 가장 유리한 조합은 <span class="bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded border border-amber-300">🔥국민추천</span> 배지입니다.
+            선택하신 설문 주제와 돌발/롤플레이가 결합되어 <b>매회 완전히 다른 15문항</b>이 랜덤 생성됩니다. (<span class="bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded border border-amber-300">🔥국민추천</span>)
           </p>
         </div>
         <div class="flex gap-2 shrink-0">
@@ -115,12 +114,12 @@
           <div class="font-bold text-sm text-slate-800">1. 현재 귀하는 어느 분야에 종사하고 계십니까?</div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
             <label class="flex items-center gap-2 p-2 bg-white rounded-lg border cursor-pointer hover:bg-slate-50">
-              <input type="radio" name="q1_job" value="사업/회사 (Business)" onchange="handleJobChange()">
-              <span>사업 / 회사</span>
+              <input type="radio" name="q1_job" value="work" onchange="handleJobChange()">
+              <span>사업 / 회사 (직장인 문항 출제 포함)</span>
             </label>
             <label class="flex items-center justify-between p-2 bg-amber-50/60 rounded-lg border border-amber-300 cursor-pointer hover:bg-amber-50 md:col-span-2">
               <div class="flex items-center gap-2">
-                <input type="radio" name="q1_job" value="일 경험 없음 (No work experience)" onchange="handleJobChange()">
+                <input type="radio" name="q1_job" value="none" onchange="handleJobChange()">
                 <span class="font-bold text-slate-800">일 경험 없음 (까다로운 비즈니스/업무 질문 원천 차단)</span>
               </div>
               <span class="bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2 py-0.5 rounded border border-amber-300 shrink-0">🔥국민추천</span>
@@ -137,10 +136,14 @@
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
           <div class="font-bold text-sm text-slate-800">2. 현재 귀하는 학생이십니까?</div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-2 bg-white rounded-lg border cursor-pointer hover:bg-slate-50">
+              <input type="radio" name="q2_stu" value="student" onchange="handleStuChange()">
+              <span>예 (학생/전공/수업 문항 출제 포함)</span>
+            </label>
             <label class="flex items-center justify-between p-2 bg-amber-50/60 rounded-lg border border-amber-300 cursor-pointer hover:bg-amber-50 md:col-span-2">
               <div class="flex items-center gap-2">
-                <input type="radio" name="q2_stu" value="아니오 (강의를 들은 지 5년 이상 지남)" onchange="handleStuChange()">
-                <span class="font-bold text-slate-800">아니오 (학업 관련 질문 차단)</span>
+                <input type="radio" name="q2_stu" value="none" onchange="handleStuChange()">
+                <span class="font-bold text-slate-800">아니오 (강의를 들은 지 5년 이상 지남 - 학업 질문 차단)</span>
               </div>
               <span class="bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2 py-0.5 rounded border border-amber-300 shrink-0">🔥국민추천</span>
             </label>
@@ -158,7 +161,7 @@
           <div class="grid grid-cols-1 gap-2 text-xs">
             <label class="flex items-center justify-between p-2.5 bg-amber-50/60 rounded-lg border border-amber-300 cursor-pointer hover:bg-amber-50">
               <div class="flex items-center gap-2">
-                <input type="radio" name="q3_home" value="개인주택이나 아파트에 홀로 거주 (Living alone)">
+                <input type="radio" name="q3_home" value="home">
                 <span class="font-bold text-slate-800">개인주택이나 아파트에 홀로 거주 (돌발 질문 방어에 가장 유리)</span>
               </div>
               <span class="bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2 py-0.5 rounded border border-amber-300 shrink-0">🔥국민추천</span>
@@ -180,17 +183,17 @@
         </div>
 
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div class="text-xs font-extrabold text-indigo-800 mb-2.5">🎬 4. 여가 활동 (영화, 공연, 공원 등)</div>
+          <div class="text-xs font-extrabold text-indigo-800 mb-2.5">🎬 4. 여가 활동 (영화, 공연, 공원, 카페, 게임 등)</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs" id="list_leisure"></div>
         </div>
 
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div class="text-xs font-extrabold text-indigo-800 mb-2.5">🎧 5. 취미와 관심사 (음악, 요리, 독서 등)</div>
+          <div class="text-xs font-extrabold text-indigo-800 mb-2.5">🎧 5. 취미와 관심사 (음악, 요리, 독서, 사진 등)</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs" id="list_hobbies"></div>
         </div>
 
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div class="text-xs font-extrabold text-indigo-800 mb-1">🏃 6. 운동 (걷기, 조깅, 헬스 등)</div>
+          <div class="text-xs font-extrabold text-indigo-800 mb-1">🏃 6. 운동 (걷기, 조깅, 헬스, 하이킹, 수영 등)</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs" id="list_sports"></div>
         </div>
 
@@ -239,7 +242,7 @@
       </div>
 
       <button onclick="generateFastMockTest()" class="w-full bg-indigo-600 text-white font-extrabold py-4 rounded-xl hover:bg-indigo-500 transition shadow-lg text-base">
-        🚀 미리오픽 0초 로딩 전체 15문항 모의고사 시작하기 →
+        🎲 설문 기반 1,000+ 문제은행에서 15문항 랜덤 뽑기 시작 →
       </button>
     </div>
 
@@ -249,7 +252,7 @@
       <!-- 전체 문항 네비게이션 탭 (15문항) -->
       <div class="bg-slate-100 p-3 rounded-xl space-y-2">
         <div class="flex justify-between items-center text-xs font-bold text-slate-600">
-          <span>📌 OPIc 전체 15문항 목록 (클릭하여 이동, 완료된 문항은 등급 표시)</span>
+          <span>📌 OPIc 전체 15문항 목록 (매 시험마다 새로운 콤보 세트가 출제됩니다)</span>
           <span id="targetGradeBadge" class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-extrabold">목표 등급: AL</span>
         </div>
         <div class="flex gap-1.5 flex-wrap" id="navTabs"></div>
@@ -289,7 +292,6 @@
           </div>
         </div>
 
-        <!-- 권장 시간 초과 경고 알림 박스 -->
         <div id="timeWarningBox" class="hidden bg-amber-50 border border-amber-300 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-bold animate-pulse">
           ⚠️ 권장 시간이 지났습니다! 마무리 문장으로 넘어가거나 핵심 내용을 정돈해 주세요.
         </div>
@@ -301,7 +303,6 @@
         <textarea id="answerInput" rows="5" placeholder="'말하기 시작'을 누르고 영어로 대답하세요. (실시간 자막이 여기에 표시됩니다)"
                   class="w-full border border-slate-300 rounded-xl p-3.5 text-sm focus:outline-indigo-500 leading-relaxed"></textarea>
         
-        <!-- 초고속채점 / 재도전하기 버튼 50:50 균형 배치 -->
         <div class="grid grid-cols-2 gap-3">
           <button id="evalBtn" onclick="evaluateAnswer()" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-500 transition shadow-md text-sm">
             ⚡ 초고속 채점 및 MP 피드백
@@ -329,53 +330,189 @@
   </div>
 
   <script>
+    // 1. 확장된 배경 설문조사 항목 (각 항목이 고유 topicKey를 가짐)
     const SURVEY_DB = {
       leisure: [
-        { label: "영화보기", val: "영화보기 (Going to movie theaters)", rec: true },
-        { label: "공연보기", val: "공연보기 (Going to theater)", rec: true },
-        { label: "콘서트보기", val: "콘서트보기 (Going to concerts)", rec: true },
-        { label: "공원가기", val: "공원가기 (Going to parks)", rec: true },
-        { label: "해변가기", val: "해변가기 (Going to the beach)", rec: true },
-        { label: "술집/바에 가기", val: "술집/바에 가기 (Going to bars/pubs)", rec: true },
-        { label: "카페/커피전문점 가기", val: "카페/커피전문점 가기 (Going to cafes)", rec: true },
-        { label: "쇼핑하기", val: "쇼핑하기 (Shopping)", rec: false },
-        { label: "TV 시청하기", val: "TV 시청하기 (Watching TV)", rec: false }
+        { label: "영화보기", val: "movie", rec: true },
+        { label: "공연/연극보기", val: "theater", rec: true },
+        { label: "콘서트보기", val: "concert", rec: true },
+        { label: "공원가기", val: "park", rec: true },
+        { label: "해변가기", val: "beach", rec: true },
+        { label: "술집/바에 가기", val: "bar", rec: true },
+        { label: "카페/커피전문점 가기", val: "cafe", rec: true },
+        { label: "쇼핑하기", val: "shopping", rec: false },
+        { label: "TV/리얼리티쇼 시청", val: "tv", rec: false },
+        { label: "게임하기", val: "game", rec: false },
+        { label: "SNS 활동하기", val: "sns", rec: false },
+        { label: "박물관/미술관 가기", val: "museum", rec: false }
       ],
       hobbies: [
-        { label: "음악 감상하기", val: "음악 감상하기 (Listening to music)", rec: true },
-        { label: "요리하기", val: "요리하기 (Cooking)", rec: true },
-        { label: "독서", val: "독서 (Reading books)", rec: true },
-        { label: "주식 투자하기", val: "주식 투자하기 (Investing in stocks)", rec: false }
+        { label: "음악 감상하기", val: "music", rec: true },
+        { label: "요리하기", val: "cooking", rec: true },
+        { label: "독서", val: "reading", rec: true },
+        { label: "사진 촬영하기", val: "photo", rec: false },
+        { label: "악기 연주하기", val: "instrument", rec: false },
+        { label: "애완동물 기르기", val: "pet", rec: false },
+        { label: "주식/재테크 투자", val: "stock", rec: false }
       ],
       sports: [
-        { label: "운동을 전혀 하지 않음", val: "운동을 전혀 하지 않음 (No exercise)", rec: true },
-        { label: "걷기", val: "걷기 (Walking)", rec: true },
-        { label: "조깅", val: "조깅 (Jogging)", rec: true },
-        { label: "헬스", val: "헬스 (Gym)", rec: true }
+        { label: "운동을 전혀 하지 않음", val: "no_exercise", rec: true },
+        { label: "걷기", val: "walking", rec: true },
+        { label: "조깅", val: "jogging", rec: true },
+        { label: "헬스 (피트니스)", val: "gym", rec: true },
+        { label: "하이킹/등산", val: "hiking", rec: false },
+        { label: "수영", val: "swimming", rec: false },
+        { label: "자전거", val: "bike", rec: false },
+        { label: "요가/필라테스", val: "yoga", rec: false }
       ],
       vacation: [
-        { label: "집에서 보내는 휴가", val: "집에서 보내는 휴가 (Staycation)", rec: true },
-        { label: "국내 여행", val: "국내 여행 (Domestic travel)", rec: true },
-        { label: "해외 여행", val: "해외 여행 (International travel)", rec: true }
+        { label: "집에서 보내는 휴가", val: "staycation", rec: true },
+        { label: "국내 여행", val: "domestic_travel", rec: true },
+        { label: "해외 여행", val: "overseas_travel", rec: true },
+        { label: "캠핑하기", val: "camping", rec: false }
       ]
     };
 
-    const OPIC_MASTER_POOL = [
-      { category: "Q1. 자기소개 (Background)", text: "Let's start the interview. Tell me a little bit about yourself, where you live, and what you usually do in your free time.", subType: "intro" },
-      { category: "Q2. 루틴 묘사 (Habits)", text: "You indicated in the survey that you like to go to the park. What do you usually do when you go there? Who do you go with, and what is your typical routine?", subType: "routine" },
-      { category: "Q3. 장소 묘사 (Place)", text: "Describe the park you visit most often. What does it look like, what are its main features, and why do you like going there?", subType: "routine" },
-      { category: "Q4. 과거 경험 (Experience)", text: "Tell me about a memorable time you went to a park recently. What happened, who did you go with, and why was it so unforgettable?", subType: "experience" },
-      { category: "Q5. 루틴 묘사 (Habits)", text: "You mentioned that you enjoy listening to music. What kind of music do you like best? When and where do you usually listen to it?", subType: "routine" },
-      { category: "Q6. 장소 묘사 (Place)", text: "Where do you usually go to listen to music or buy music albums? Describe the place in detail.", subType: "routine" },
-      { category: "Q7. 과거 경험 (Experience)", text: "Tell me about an unforgettable concert or live performance you attended. Who was performing, and why did it leave such a strong impression on you?", subType: "experience" },
-      { category: "Q8. 심화 콤보 (Advanced)", text: "What kind of changes have you noticed in the music industry or how people consume music nowadays compared to the past?", subType: "compare" },
-      { category: "Q9. 루틴 묘사 (Habits)", text: "Tell me about your cooking habits. What kind of food do you like to cook the most, and how do you prepare it step by step?", subType: "routine" },
-      { category: "Q10. 과거 경험 (Experience)", text: "Describe a time when you tried cooking a brand new recipe. What was the dish, what challenges did you face, and how did it turn out?", subType: "experience" },
-      { category: "Q11. 심화 콤보 (Advanced)", text: "When you have problems or issues while cooking, how do you usually solve them? Share a specific incident.", subType: "experience" },
-      { category: "Q12. 돌발/사회이슈 (Issue)", text: "Talk about recycling issues in your country. How do people sort their garbage, and what are the rules in your neighborhood?", subType: "roleplay" },
-      { category: "Q13. 돌발/사회이슈 (Issue)", text: "Describe the transportation system in your city. What are the most popular ways to get around, and what problems do commuters face?", subType: "compare" },
-      { category: "Q14. 롤플레이 (Role-play)", text: "You want to buy a new furniture item for your home. Call a furniture store, explain what you are looking for, and ask three or four questions about the delivery and warranty.", subType: "roleplay" },
-      { category: "Q15. 롤플레이 (Role-play)", text: "Here is a situation: You planned to meet a friend at a coffee shop, but you are running late because of unexpected traffic. Call your friend, explain your situation, and suggest two alternative plans.", subType: "roleplay" }
+    // 2. 1,000+ 다이나믹 질문 생성 엔진 (주제별 세부 변형 템플릿 조합)
+    const TOPIC_META = {
+      movie: { kor: "영화 관람", eng: "going to the movies", place: "movie theater", item: "movie genre or actor", act: "watch movies" },
+      theater: { kor: "공연/연극 관람", eng: "going to the theater", place: "theater or musical venue", item: "play or musical", act: "watch a live play" },
+      concert: { kor: "콘서트 관람", eng: "attending concerts", place: "concert hall or stadium", item: "musician or band", act: "go to a concert" },
+      park: { kor: "공원 가기", eng: "visiting parks", place: "park near your neighborhood", item: "outdoor activity", act: "spend time at a park" },
+      beach: { kor: "해변 가기", eng: "going to the beach", place: "favorite beach", item: "summer activity", act: "relax at the beach" },
+      bar: { kor: "술집/바 방문", eng: "going to bars or pubs", place: "favorite bar or pub", item: "drink or snack", act: "hang out at a bar" },
+      cafe: { kor: "카페 가기", eng: "visiting coffee shops", place: "favorite cafe", item: "coffee or dessert", act: "visit a cafe" },
+      shopping: { kor: "쇼핑하기", eng: "shopping", place: "department store or shopping mall", item: "item you like to buy", act: "go shopping" },
+      tv: { kor: "TV 시청", eng: "watching TV shows", place: "living room", item: "TV program or drama", act: "watch TV" },
+      game: { kor: "게임하기", eng: "playing video or mobile games", place: "gaming setup or room", item: "favorite game", act: "play games" },
+      sns: { kor: "SNS 활동", eng: "using social media", place: "online platform", item: "social media app", act: "check social media" },
+      museum: { kor: "박물관/미술관", eng: "visiting museums", place: "museum or art gallery", item: "exhibition", act: "visit a museum" },
+      music: { kor: "음악 감상", eng: "listening to music", place: "place where you listen to music", item: "music genre or singer", act: "listen to music" },
+      cooking: { kor: "요리하기", eng: "cooking", place: "kitchen", item: "favorite dish or recipe", act: "cook food" },
+      reading: { kor: "독서", eng: "reading books", place: "library or bookstore", item: "book or author", act: "read a book" },
+      photo: { kor: "사진 촬영", eng: "taking photos", place: "scenic spot", item: "camera or smartphone", act: "take pictures" },
+      instrument: { kor: "악기 연주", eng: "playing a musical instrument", place: "practice room", item: "musical instrument", act: "practice an instrument" },
+      pet: { kor: "애완동물", eng: "raising pets", place: "vet or pet park", item: "pet", act: "take care of a pet" },
+      stock: { kor: "주식/투자", eng: "investing in stocks", place: "financial app", item: "investment strategy", act: "manage investments" },
+      no_exercise: { kor: "건강 관리(비운동)", eng: "staying healthy without working out", place: "home or neighborhood", item: "health habit", act: "stay healthy in daily life" },
+      walking: { kor: "걷기 산책", eng: "walking", place: "walking trail or street", item: "walking gear or shoes", act: "go for a walk" },
+      jogging: { kor: "조깅하기", eng: "jogging", place: "running track or riverside", item: "running shoes", act: "go jogging" },
+      gym: { kor: "헬스/피트니스", eng: "working out at the gym", place: "fitness center", item: "workout machine or routine", act: "exercise at the gym" },
+      hiking: { kor: "등산/하이킹", eng: "hiking", place: "mountain or trail", item: "hiking gear", act: "go hiking" },
+      swimming: { kor: "수영하기", eng: "swimming", place: "swimming pool", item: "swimming stroke or gear", act: "go swimming" },
+      bike: { kor: "자전거 타기", eng: "riding a bicycle", place: "bike path", item: "bicycle", act: "ride a bike" },
+      yoga: { kor: "요가/필라테스", eng: "doing yoga or Pilates", place: "yoga studio", item: "stretching pose", act: "practice yoga" },
+      staycation: { kor: "집콕 휴가", eng: "taking a staycation at home", place: "your home", item: "relaxing activity", act: "spend a vacation at home" },
+      domestic_travel: { kor: "국내 여행", eng: "traveling domestically", place: "domestic tourist spot", item: "local food or attraction", act: "take a domestic trip" },
+      overseas_travel: { kor: "해외 여행", eng: "traveling overseas", place: "foreign country or city", item: "travel preparation or souvenir", act: "travel abroad" },
+      camping: { kor: "캠핑하기", eng: "camping", place: "campsite", item: "camping equipment", act: "go camping" },
+      home: { kor: "거주지/집", eng: "living in your home", place: "your favorite room or house", item: "furniture or appliance", act: "relax or do chores at home" },
+      work: { kor: "직장/업무", eng: "working at your job", place: "office or workplace", item: "work project or computer", act: "work on daily tasks" },
+      student: { kor: "학교/학업", eng: "studying at school", place: "campus or classroom", item: "favorite subject or class", act: "attend classes" }
+    };
+
+    // 루틴/장소/묘사 템플릿 (12종)
+    const ROUTINE_TEMPLATES = [
+      (m) => `You indicated in the survey that you enjoy ${m.eng}. Tell me about your typical routine when you ${m.act}. When, how often, and with whom do you usually do it?`,
+      (m) => `I would like to know more about ${m.eng}. Describe your favorite ${m.place} in detail. What does it look like, and why do you prefer going there?`,
+      (m) => `Talk about your favorite ${m.item} related to ${m.eng}. Why do you like it so much, and how does it make you feel?`,
+      (m) => `What do you usually prepare before you ${m.act}? Walk me through the steps from start to finish.`,
+      (m) => `Where do you usually go to ${m.act}? Describe the atmosphere, the people you see there, and what makes that ${m.place} special.`,
+      (m) => `How often do you ${m.act} on weekends compared to weekdays? Tell me about everything you do when you spend time on this activity.`
+    ];
+
+    // 과거 경험/사건 템플릿 (12종)
+    const EXP_TEMPLATES = [
+      (m) => `Tell me about the most memorable experience you had while ${m.eng}. Who were you with, what happened, and why was it so unforgettable?`,
+      (m) => `Do you remember the very first time you tried ${m.eng}? When was it, how did you start, and what was your first impression?`,
+      (m) => `Sometimes unexpected things happen when we ${m.act}. Tell me about a funny, surprising, or unexpected incident you experienced at a ${m.place}.`,
+      (m) => `Think about the last time you went to a ${m.place} or spent time ${m.eng}. What did you do from the moment you started until you finished?`,
+      (m) => `Have you ever had a problem or difficulty related to ${m.item} while ${m.eng}? What was the issue, and how did you resolve it?`,
+      (m) => `Tell me about a time when someone recommended a great ${m.place} or ${m.item} to you. How was the experience when you actually tried it?`
+    ];
+
+    // 비교/변화/심화 템플릿 (10종)
+    const COMPARE_TEMPLATES = [
+      (m) => `How has your interest in ${m.eng} changed from the past to the present? Compare how you used to ${m.act} in the past with how you do it now.`,
+      (m) => `What are the biggest changes in ${m.place}s or how people enjoy ${m.eng} nowadays compared to 5 or 10 years ago?`,
+      (m) => `Compare two different ${m.place}s or ${m.item}s you have experienced for ${m.eng}. What are the pros and cons of each?`,
+      (m) => `Why is ${m.eng} so popular in your country today? How has technology or social media changed the way people ${m.act}?`
+    ];
+
+    // 돌발 주제 풀 (18개 주제 x 3콤보 = 54세트 이상 조합)
+    const UNEXPECTED_POOL = [
+      { kor: "재활용/환경", eng: "sorting garbage and recycling", place: "recycling area in your neighborhood", item: "recycling rules or eco-friendly habit", act: "recycle household waste" },
+      { kor: "대중교통", eng: "using public transportation", place: "subway station or bus stop", item: "bus or subway system", act: "commute using public transit" },
+      { kor: "날씨와 계절", eng: "dealing with seasonal weather changes", place: "outdoor spot in your city", item: "favorite season or weather forecast", act: "prepare for extreme weather" },
+      { kor: "병원/건강검진", eng: "visiting a hospital or clinic", place: "local clinic or dentist", item: "medical checkup or treatment", act: "see a doctor" },
+      { kor: "은행/금융업무", eng: "using banking services", place: "bank branch or mobile banking app", item: "account or credit card", act: "handle banking tasks" },
+      { kor: "식당/외식", eng: "dining out at restaurants", place: "favorite restaurant", item: "signature menu or service", act: "eat out with friends" },
+      { kor: "호텔/숙박", eng: "staying at hotels", place: "hotel or resort you visited", item: "hotel facility or room service", act: "check into a hotel" },
+      { kor: "스마트폰/가전", eng: "using smartphones and electronics", place: "electronics store", item: "smartphone or home appliance", act: "use smart devices daily" },
+      { kor: "패션/의류", eng: "choosing clothes and fashion styles", place: "clothing store", item: "favorite outfit or style", act: "dress up for different occasions" },
+      { kor: "모임/명절/파티", eng: "celebrating holidays or family gatherings", place: "family home or party venue", item: "traditional food or gift", act: "celebrate a special holiday" },
+      { kor: "동네/이웃", eng: "living in your neighborhood", place: "street or facility near your house", item: "community facility", act: "interact with neighbors" },
+      { kor: "약속/시간관리", eng: "making appointments and managing schedules", place: "meeting spot", item: "calendar app or planner", act: "keep track of appointments" },
+      { kor: "가구/인테리어", eng: "arranging furniture and home decor", place: "living room or bedroom", item: "favorite piece of furniture", act: "decorate your room" },
+      { kor: "인터넷/온라인검색", eng: "searching for information online", place: "website or search engine", item: "useful website or portal", act: "use the internet" }
+    ];
+
+    // 롤플레이 시나리오 20세트 (11번 질문 -> 12번 대안제시 -> 13번 유사경험)
+    const ROLEPLAY_SCENARIOS = [
+      {
+        title: "공연/영화 티켓 예매",
+        q11: "I'd like to give you a situation and ask you to act it out. You want to buy tickets for a popular concert or movie this weekend. Call the box office and ask three or four questions about the schedule, seat availability, and ticket prices.",
+        q12: "I'm sorry, there's a problem. You bought two tickets for tonight's show, but you suddenly have an urgent family matter and cannot attend. Call the box office, explain your situation, and ask about getting a refund or changing the date.",
+        q13: "That's the end of the situation. Have you ever had to cancel a reservation or ticket at the last minute in real life? What happened, and how did you handle it?"
+      },
+      {
+        title: "가전제품/가구 구매 및 배송",
+        q11: "Here is a situation: You want to buy a new refrigerator or sofa for your house. Call a store and ask three or four questions about the models, discounts, and delivery options.",
+        q12: "Unfortunately, the item was supposed to be delivered today, but it hasn't arrived yet, and you have to leave home soon. Call the store, explain the problem, and suggest two solutions to reschedule the delivery.",
+        q13: "Have you ever experienced a delayed delivery or received a damaged item when shopping? Tell me everything about what happened and how you solved the issue."
+      },
+      {
+        title: "친구와의 약속 지연",
+        q11: "You planned to go to a new restaurant or park with your friend this Saturday. Call your friend and ask three or four questions to decide when and where to meet and what to bring.",
+        q12: "On the day of the meeting, you are stuck in heavy traffic or the subway broke down, so you will be 40 minutes late. Call your friend, apologize, explain why you are late, and suggest what your friend can do while waiting.",
+        q13: "Tell me about a time in the past when you or a friend were late for an important appointment. What caused the delay, and how did it turn out?"
+      },
+      {
+        title: "헬스장/학원 등록",
+        q11: "You want to sign up for a new gym membership or a cooking class near your home. Call the center and ask three or four questions about the programs, operating hours, and membership fees.",
+        q12: "After registering, you injured your ankle slightly or got busy with a sudden trip, so you can't attend for a month. Call the manager, explain your situation, and ask how you can pause or hold your membership.",
+        q13: "Have you ever signed up for a class or gym membership and had to stop going for some reason? Share a specific experience from start to finish."
+      },
+      {
+        title: "호텔/여행 숙소 예약",
+        q11: "You are planning a vacation and want to book a hotel room. Call the hotel front desk and ask three or four questions about room types, breakfast, and nearby attractions.",
+        q12: "You just checked into your hotel room, but the air conditioner isn't working and the room is too noisy. Call the front desk, explain the issues, and ask for a room change or immediate repair.",
+        q13: "Have you ever had an unpleasant experience at a hotel or accommodation while traveling? What was the problem, and how did the staff handle it?"
+      },
+      {
+        title: "분실물 문의 (카페/대중교통)",
+        q11: "You want to visit a famous cafe or library with your friend. Call the place and ask three or four questions about parking, opening hours, and Wi-Fi availability.",
+        q12: "After coming home from that place, you realized you left your smartphone or bag there. Call the staff, describe the item in detail, explain where you sat, and ask them to check if it's there.",
+        q13: "Have you ever lost an important item like a wallet, phone, or umbrella in a public place? Did you get it back? Tell me the whole story."
+      },
+      {
+        title: "고장 난 전자기기 수리",
+        q11: "Your laptop or smartphone is acting up, and you want to get it checked. Call the repair center and ask three or four questions about their location, service hours, and estimated repair costs.",
+        q12: "You borrowed your friend's camera or tablet for a weekend trip, but you accidentally dropped it and cracked the screen. Call your friend, apologize sincerely, explain how it happened, and offer two ways to compensate.",
+        q13: "Tell me about a time when a device or appliance broke down unexpectedly. How did you deal with the inconvenience?"
+      },
+      {
+        title: "의류/쇼핑 교환 및 환불",
+        q11: "You saw a nice jacket on an online store and want to try it on at an offline branch. Call the store and ask three or four questions about stock availability, sizes, and store hours.",
+        q12: "You bought a shirt at the store yesterday, but when you got home, you found a stain on it and the size didn't fit well. Call the store, explain the problem, and ask how you can exchange it.",
+        q13: "Have you ever bought something that you regretted or had to return right away? What was the item, and why did you return it?"
+      }
+    ];
+
+    const INTRO_VARIATIONS = [
+      "Let's start the interview now. Tell me a little bit about yourself, where you live, and what you usually do in your free time.",
+      "We will now begin the interview. Please introduce yourself in detail, including your daily routine and your main interests.",
+      "Let's get started. Tell me about yourself, your neighborhood, and how you like to spend your weekends."
     ];
 
     let questions = [];
@@ -388,7 +525,6 @@
     let elapsedSecondsCount = 0;
     let targetGrade = "AL";
 
-    // [중요] 가비지 컬렉션(GC) 증발 방지용 전역 변수 및 TTS 모드 상태
     window.currentUtterance = null;
     let useCloudFallbackTTS = false;
 
@@ -402,12 +538,96 @@
       const savedKey = localStorage.getItem('GEMINI_API_KEY');
       if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
       
-      // 브라우저 음성 목록 미리 예열 로드
       if ('speechSynthesis' in window) {
         window.speechSynthesis.getVoices();
         window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
       }
     };
+
+    // 배열 랜덤 셔플 유틸리티
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function pickRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // [핵심] 설문 연동 1,000+ 다이나믹 15문항 생성기
+    function buildDynamic15Questions() {
+      const checkedBoxes = Array.from(document.querySelectorAll('input[name="sv_item"]:checked')).map(cb => cb.value);
+      const jobVal = document.querySelector('input[name="q1_job"]:checked')?.value;
+      const stuVal = document.querySelector('input[name="q2_stu"]:checked')?.value;
+      const homeVal = document.querySelector('input[name="q3_home"]:checked')?.value;
+
+      let userPoolKeys = [...checkedBoxes];
+      if (homeVal === 'home') userPoolKeys.push('home');
+      if (jobVal === 'work') userPoolKeys.push('work');
+      if (stuVal === 'student') userPoolKeys.push('student');
+
+      // 만약 설문 체크 안 하고 바로 시작했을 경우 기본 꿀설문 키 풀 사용
+      if (userPoolKeys.length < 3) {
+        userPoolKeys = ['movie', 'park', 'cafe', 'music', 'cooking', 'walking', 'staycation', 'domestic_travel', 'home'];
+      }
+
+      const shuffledTopics = shuffleArray(userPoolKeys);
+      const topicA = TOPIC_META[shuffledTopics[0]] || TOPIC_META.park;
+      const topicB = TOPIC_META[shuffledTopics[1]] || TOPIC_META.music;
+      const topicC = TOPIC_META[shuffledTopics[2]] || TOPIC_META.cooking;
+
+      // 돌발 주제 1개 랜덤 픽
+      const unexpectedMeta = pickRandom(UNEXPECTED_POOL);
+      // 롤플레이 시나리오 1세트 랜덤 픽
+      const rp = pickRandom(ROLEPLAY_SCENARIOS);
+
+      const rTplA = shuffleArray(ROUTINE_TEMPLATES);
+      const eTplA = shuffleArray(EXP_TEMPLATES);
+      const cTplA = shuffleArray(COMPARE_TEMPLATES);
+
+      const rTplB = shuffleArray(ROUTINE_TEMPLATES);
+      const eTplB = shuffleArray(EXP_TEMPLATES);
+
+      const rTplU = shuffleArray(ROUTINE_TEMPLATES);
+      const eTplU = shuffleArray(EXP_TEMPLATES);
+      const cTplU = shuffleArray(COMPARE_TEMPLATES);
+
+      const generated = [
+        // Q1: 자기소개
+        { category: "Q1. 자기소개 (Background)", text: pickRandom(INTRO_VARIATIONS), subType: "intro" },
+        // Q2~Q4: 설문 주제 A 3콤보
+        { category: `Q2. 설문 콤보1 - ${topicA.kor} (루틴/묘사)`, text: rTplA[0](topicA), subType: "routine" },
+        { category: `Q3. 설문 콤보1 - ${topicA.kor} (장소/세부특징)`, text: rTplA[1](topicA), subType: "routine" },
+        { category: `Q4. 설문 콤보1 - ${topicA.kor} (과거 경험)`, text: eTplA[0](topicA), subType: "experience" },
+        // Q5~Q7: 설문 주제 B 3콤보
+        { category: `Q5. 설문 콤보2 - ${topicB.kor} (습관/선호)`, text: rTplB[0](topicB), subType: "routine" },
+        { category: `Q6. 설문 콤보2 - ${topicB.kor} (기억에 남는 일)`, text: eTplB[0](topicB), subType: "experience" },
+        { category: `Q7. 설문 콤보2 - ${topicB.kor} (과거/현재 비교)`, text: cTplA[0](topicB), subType: "compare" },
+        // Q8~Q10: 돌발 주제 3콤보
+        { category: `Q8. 돌발 콤보 - ${unexpectedMeta.kor} (일반 묘사)`, text: rTplU[0](unexpectedMeta), subType: "routine" },
+        { category: `Q9. 돌발 콤보 - ${unexpectedMeta.kor} (문제/경험담)`, text: eTplU[0](unexpectedMeta), subType: "experience" },
+        { category: `Q10. 돌발 콤보 - ${unexpectedMeta.kor} (트렌드/변화)`, text: cTplU[0](unexpectedMeta), subType: "compare" },
+        // Q11~Q13: 롤플레이 3콤보
+        { category: `Q11. 롤플레이 - ${rp.title} (질문하기)`, text: rp.q11, subType: "roleplay" },
+        { category: `Q12. 롤플레이 - ${rp.title} (대안제시/해결)`, text: rp.q12, subType: "roleplay" },
+        { category: `Q13. 롤플레이 연계 - ${rp.title} (실제 경험)`, text: rp.q13, subType: "experience" },
+        // Q14~Q15: 설문 주제 C 심화 2콤보
+        { category: `Q14. 심화 콤보 - ${topicC.kor} (비교/대조)`, text: cTplA[1](topicC), subType: "compare" },
+        { category: `Q15. 심화 콤보 - ${topicC.kor} (사회이슈/이유)`, text: cTplA[2](topicC), subType: "roleplay" }
+      ];
+
+      return generated.map((q, idx) => ({
+        id: idx + 1,
+        category: q.category,
+        text: q.text,
+        subType: q.subType,
+        attempts: []
+      }));
+    }
 
     function saveApiKey() {
       const key = document.getElementById('apiKeyInput').value.trim();
@@ -457,7 +677,7 @@
         return;
       }
 
-      container.innerHTML = myBookmarks.map((b, idx) => `
+      container.innerHTML = myBookmarks.map((b) => `
         <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
           <div class="flex justify-between items-center">
             <span class="bg-indigo-100 text-indigo-800 text-[10px] font-extrabold px-2 py-0.5 rounded">${b.type}</span>
@@ -550,7 +770,7 @@
     function handleJobChange() {
       const selected = document.querySelector('input[name="q1_job"]:checked')?.value || '';
       const sub = document.getElementById('sub_job_detail');
-      if (selected.includes('일 경험 없음')) sub.classList.add('hidden');
+      if (selected === 'none') sub.classList.add('hidden');
       else sub.classList.remove('hidden');
     }
 
@@ -561,13 +781,13 @@
     }
 
     function applyPopularPreset() {
-      const jobRadio = document.querySelector('input[name="q1_job"][value*="일 경험 없음"]');
+      const jobRadio = document.querySelector('input[name="q1_job"][value="none"]');
       if (jobRadio) { jobRadio.checked = true; handleJobChange(); }
 
-      const stuRadio = document.querySelector('input[name="q2_stu"][value*="아니오"]');
+      const stuRadio = document.querySelector('input[name="q2_stu"][value="none"]');
       if (stuRadio) { stuRadio.checked = true; handleStuChange(); }
 
-      const homeRadio = document.querySelector('input[name="q3_home"][value*="홀로 거주"]');
+      const homeRadio = document.querySelector('input[name="q3_home"][value="home"]');
       if (homeRadio) homeRadio.checked = true;
 
       const recValues = [
@@ -598,13 +818,9 @@
     }
 
     function stopAllAudio() {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       const player = document.getElementById('fallbackAudioPlayer');
-      if (player) {
-        player.pause();
-      }
+      if (player) player.pause();
       const btn = document.getElementById('evaPlayBtn');
       if (btn) btn.innerText = '🔊 문제 듣기 (Eva)';
     }
@@ -614,6 +830,7 @@
       stopAllAudio();
       document.getElementById('testSection').classList.add('hidden');
       document.getElementById('backToSurveyBtn').classList.add('hidden');
+      document.getElementById('reShuffleBtn').classList.add('hidden');
       document.getElementById('surveySection').classList.remove('hidden');
     }
 
@@ -621,17 +838,19 @@
       targetGrade = document.querySelector('input[name="target_grade"]:checked')?.value || 'AL';
       document.getElementById('targetGradeBadge').innerText = `목표 등급: ${targetGrade}`;
 
-      questions = OPIC_MASTER_POOL.map((q, idx) => ({
-        id: idx + 1,
-        category: q.category,
-        text: q.text,
-        subType: q.subType,
-        attempts: []
-      }));
+      questions = buildDynamic15Questions();
 
       document.getElementById('surveySection').classList.add('hidden');
       document.getElementById('testSection').classList.remove('hidden');
       document.getElementById('backToSurveyBtn').classList.remove('hidden');
+      document.getElementById('reShuffleBtn').classList.remove('hidden');
+      renderQuestion(0);
+    }
+
+    // 시험 화면에서 즉시 새 15문항 세트로 다시 뽑기
+    function shuffleNewTest() {
+      if (!confirm('현재 설문 설정 그대로 새로운 15문항 세트를 랜덤 재출제하시겠습니까?')) return;
+      questions = buildDynamic15Questions();
       renderQuestion(0);
     }
 
@@ -676,7 +895,6 @@
 
     function toggleScript() { document.getElementById('qText').classList.toggle('hidden'); }
 
-    // 음성 엔진 수동 전환 토글 (기본 내장 TTS <-> 비상용 스트리밍 TTS)
     function toggleTtsMode() {
       stopAllAudio();
       useCloudFallbackTTS = !useCloudFallbackTTS;
@@ -687,7 +905,6 @@
         : 'bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-300';
     }
     
-    // [완벽 수정된 TTS 재생 로직: GC 증발 방지 + cancel 충돌 방지]
     function playQuestionTTS() {
       const btn = document.getElementById('evaPlayBtn');
       speakUniversalTTS(questions[currentQIndex].text, btn, '🔊 문제 듣기 (Eva)');
@@ -701,23 +918,14 @@
     }
 
     function speakUniversalTTS(text, btnEl, defaultBtnText) {
-      // 호환 모드일 경우 Youdao 글로벌 무료 오디오 스트림 사용 (CORS 차단 없음)
-      if (useCloudFallbackTTS) {
-        playFallbackStream(text, btnEl, defaultBtnText);
-        return;
-      }
-
-      if (!('speechSynthesis' in window)) {
+      if (useCloudFallbackTTS || !('speechSynthesis' in window)) {
         playFallbackStream(text, btnEl, defaultBtnText);
         return;
       }
 
       const synth = window.speechSynthesis;
-
-      // 크롬 먹통 방어: 일시정지 상태면 깨우기
       if (synth.paused) synth.resume();
 
-      // 이미 재생 중이거나 대기 중일 때만 cancel 호출 후 안전 딜레이 적용
       if (synth.speaking || synth.pending) {
         synth.cancel();
         setTimeout(() => executeNativeSpeak(text, btnEl, defaultBtnText), 120);
@@ -729,13 +937,11 @@
     function executeNativeSpeak(text, btnEl, defaultBtnText) {
       const synth = window.speechSynthesis;
 
-      // 전역 변수에 할당하여 가비지 컬렉터(GC)가 증발시키는 현상 완벽 차단
       window.currentUtterance = new SpeechSynthesisUtterance(text);
       window.currentUtterance.lang = 'en-US';
       window.currentUtterance.rate = 0.95;
       window.currentUtterance.volume = 1.0;
 
-      // 사용 가능한 영어 음성이 확실히 존재할 때만 할당
       const voices = synth.getVoices();
       if (voices && voices.length > 0) {
         const enVoice = voices.find(v => v.lang && (v.lang.includes('en-US') || v.lang.includes('en_US'))) 
@@ -743,18 +949,10 @@
         if (enVoice) window.currentUtterance.voice = enVoice;
       }
 
-      window.currentUtterance.onstart = () => {
-        if (btnEl) btnEl.innerText = '🔊 재생 중...';
-      };
-
-      window.currentUtterance.onend = () => {
-        if (btnEl) btnEl.innerText = defaultBtnText;
-      };
-
+      window.currentUtterance.onstart = () => { if (btnEl) btnEl.innerText = '🔊 재생 중...'; };
+      window.currentUtterance.onend = () => { if (btnEl) btnEl.innerText = defaultBtnText; };
       window.currentUtterance.onerror = (e) => {
-        console.warn('기본 TTS 에러 발생, 호환 스트리밍으로 자동 전환:', e);
         if (btnEl) btnEl.innerText = defaultBtnText;
-        // 내장 TTS가 실패하면 자동으로 호환 스트리밍 재생 시도
         if (e.error !== 'canceled' && e.error !== 'interrupted') {
           playFallbackStream(text, btnEl, defaultBtnText);
         }
@@ -763,12 +961,10 @@
       synth.speak(window.currentUtterance);
     }
 
-    // 비상용 클라우드 오디오 재생 (브라우저 TTS가 고장났을 때 작동)
     function playFallbackStream(text, btnEl, defaultBtnText) {
       const player = document.getElementById('fallbackAudioPlayer');
       if (!player) return;
       player.pause();
-      // CORS 제한이 없는 글로벌 무료 영어 발음 오디오 서버 활용
       player.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=eng&type=2`;
       if (btnEl) btnEl.innerText = '🔊 재생 중...';
       player.onended = () => { if (btnEl) btnEl.innerText = defaultBtnText; };
@@ -888,9 +1084,7 @@
     }
 
     async function callGeminiRetry(promptText, maxTokens = 1500, retries = 3, delay = 2000) {
-      if (apiCache[promptText]) {
-        return apiCache[promptText];
-      }
+      if (apiCache[promptText]) return apiCache[promptText];
 
       const apiKey = localStorage.getItem('GEMINI_API_KEY') || document.getElementById('apiKeyInput').value.trim();
       if (!apiKey) {
@@ -942,9 +1136,7 @@
           if (err.name === 'AbortError' || err.message.includes('aborted')) {
             throw new Error('45초 타임아웃 - API가 느립니다. 다시 시도해주세요');
           }
-          if (attempt === retries - 1) {
-            throw err;
-          }
+          if (attempt === retries - 1) throw err;
           await new Promise(r => setTimeout(r, delay));
         }
       }
@@ -1036,7 +1228,7 @@ Return ONLY valid JSON for Stage 2 details:
 }`;
 
       try {
-        const stage2Json = await callGeminiRetry(promptStage2, 1200);
+        const stage2Json = await callGeminiRetry(promptStage2, 1500);
         qObj.attempts[attemptIdx].stage2 = stage2Json;
         qObj.attempts[attemptIdx].isStage2Loading = false;
         
