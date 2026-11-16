@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OPIc AL 실전 모의고사 & MP 두괄식 튜터 (채점 속도 초고속 패치)</title>
+  <title>미리오픽 (MiriOPIc) - OPIc AL 실전 모의고사 튜터</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8">
@@ -13,10 +13,10 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 gap-3">
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 OPIc AL 실전 모의고사 (초고속 채점 버전)</h1>
-          <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded-full">속도 최적화 완료</span>
+          <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.6.0</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">배경 설문조사 → 실제 15문항 0초 로딩 → ⚡ 초고속 실시간 MP 두괄식 채점</p>
+        <p class="text-xs text-slate-500 mt-1">설문조사 & 목표등급 설정 → 실제 15문항 0초 로딩 → 스마트 녹음 타이머 → 초고속 MP 두괄식 채점</p>
       </div>
       <div class="flex gap-3">
         <button onclick="resetToSurvey()" id="backToSurveyBtn" class="hidden text-xs bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-slate-300">
@@ -39,7 +39,7 @@
       </div>
     </div>
 
-    <!-- ==================== 로딩 프로그레스 바 모달 ==================== -->
+    <!-- ==================== 초고속 채점 로딩 프로그레스 바 ==================== -->
     <div id="loadingOverlay" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
         <div class="inline-block p-3 bg-indigo-50 rounded-full text-indigo-600 animate-bounce">
@@ -47,7 +47,8 @@
         </div>
         <div class="space-y-1">
           <h3 id="loadingTitle" class="text-base font-bold text-slate-900">초고속 AI 채점 중</h3>
-          <p id="loadingDesc" class="text-xs text-slate-500">첫 문장 두괄식(MP) 구조와 핵심 영역을 빠르게 분석하고 있습니다...</p>
+          <p id="loadingDesc" class="text-xs text-slate-500">첫 문장 MP(두괄식) 구조와 핵심 영역을 빠르게 분석하고 있습니다...</p>
+          <p class="text-[11px] font-bold text-amber-600 mt-1">⏳ 예상 소요 시간: 약 3~5초 (경과 시간: <span id="elapsedSec">0</span>초)</p>
         </div>
         <div class="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5 border">
           <div id="progressBar" class="bg-indigo-600 h-full rounded-full transition-all duration-200 w-[50%] animate-pulse"></div>
@@ -167,23 +168,46 @@
         </div>
       </div>
 
+      <!-- 목표 등급 선택 (추가됨) -->
+      <div class="border-t pt-5 space-y-3">
+        <h2 class="text-base font-extrabold text-slate-800">🎯 목표 등급 설정 (Target Grade)</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
+          <label class="border-2 border-amber-500 bg-amber-50/40 rounded-xl p-3 cursor-pointer flex items-center gap-2">
+            <input type="radio" name="target_grade" value="AL" checked class="accent-amber-600">
+            <div><b class="text-amber-900">AL (Advanced Low)</b><br><span class="text-slate-600">최고등급 목표</span></div>
+          </label>
+          <label class="border rounded-xl p-3 cursor-pointer hover:bg-slate-50 flex items-center gap-2">
+            <input type="radio" name="target_grade" value="IH" class="accent-indigo-600">
+            <div><b>IH (Intermediate High)</b><br><span class="text-slate-500">안정적 상위권</span></div>
+          </label>
+          <label class="border rounded-xl p-3 cursor-pointer hover:bg-slate-50 flex items-center gap-2">
+            <input type="radio" name="target_grade" value="IM3" class="accent-indigo-600">
+            <div><b>IM3</b><br><span class="text-slate-500">중상급 도약</span></div>
+          </label>
+          <label class="border rounded-xl p-3 cursor-pointer hover:bg-slate-50 flex items-center gap-2">
+            <input type="radio" name="target_grade" value="IM2" class="accent-indigo-600">
+            <div><b>IM2</b><br><span class="text-slate-500">탄탄한 중급</span></div>
+          </label>
+        </div>
+      </div>
+
       <!-- 난이도 선택 -->
       <div class="border-t pt-5 space-y-3">
         <h2 class="text-base font-extrabold text-slate-800">🎚️ Self-Assessment (난이도 선택)</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
-          <label class="border-2 border-amber-500 bg-amber-50/40 rounded-xl p-3 cursor-pointer flex items-start gap-2">
-            <input type="radio" name="sa_level" value="5" checked class="mt-0.5 accent-amber-600">
-            <div><b class="text-amber-900">Level 5 (추천)</b><br><span class="text-slate-600">AL 목표 최적</span></div>
+          <label class="border-2 border-indigo-500 bg-indigo-50/40 rounded-xl p-3 cursor-pointer flex items-center gap-2">
+            <input type="radio" name="sa_level" value="5" checked class="accent-indigo-600">
+            <div><b>Level 5 (추천)</b><br><span class="text-slate-600">AL 목표 최적</span></div>
           </label>
-          <label class="border rounded-xl p-3 cursor-pointer hover:bg-slate-50 flex items-start gap-2">
-            <input type="radio" name="sa_level" value="6" class="mt-0.5 accent-indigo-600">
+          <label class="border rounded-xl p-3 cursor-pointer hover:bg-slate-50 flex items-center gap-2">
+            <input type="radio" name="sa_level" value="6" class="accent-indigo-600">
             <div><b>Level 6</b><br><span class="text-slate-500">고난도 이슈</span></div>
           </label>
         </div>
       </div>
 
       <button onclick="generateFastMockTest()" class="w-full bg-indigo-600 text-white font-extrabold py-4 rounded-xl hover:bg-indigo-500 transition shadow-lg text-base">
-        🚀 초고속 0초 로딩 전체 15문항 모의고사 시작하기 →
+        🚀 미리오픽 0초 로딩 전체 15문항 모의고사 시작하기 →
       </button>
     </div>
 
@@ -192,7 +216,10 @@
       
       <!-- 전체 문항 네비게이션 탭 (15문항) -->
       <div class="bg-slate-100 p-3 rounded-xl space-y-2">
-        <div class="text-xs font-bold text-slate-600">📌 OPIc 전체 15문항 목록 (클릭하여 이동, 완료된 문항은 등급 표시)</div>
+        <div class="flex justify-between items-center text-xs font-bold text-slate-600">
+          <span>📌 OPIc 전체 15문항 목록 (클릭하여 이동, 완료된 문항은 등급 표시)</span>
+          <span id="targetGradeBadge" class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-extrabold">목표 등급: AL</span>
+        </div>
         <div class="flex gap-1.5 flex-wrap" id="navTabs"></div>
       </div>
 
@@ -212,12 +239,15 @@
         <p id="qText" class="text-slate-800 font-medium leading-relaxed hidden border-t border-indigo-200/60 pt-3 text-sm"></p>
       </div>
 
-      <!-- 답변 및 녹음 영역 -->
+      <!-- 답변 및 스마트 녹음 영역 -->
       <div class="space-y-3">
         <div class="flex justify-between items-center flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <label class="text-sm font-bold text-slate-700">🎙️ 나의 답변 (첫 문장 MP 두괄식 필수!)</label>
-            <span id="timerBadge" class="text-xs font-mono bg-slate-200 text-slate-700 px-2 py-0.5 rounded">00:00</span>
+            <div class="flex items-center gap-2">
+              <span id="timerBadge" class="text-xs font-mono font-bold bg-slate-200 text-slate-700 px-2 py-0.5 rounded">00:00</span>
+              <span id="maxTimeLabel" class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border">Max 1:30</span>
+            </div>
           </div>
           <div class="flex gap-2">
             <button id="recordBtn" onclick="toggleRecording()" class="bg-rose-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-rose-500 shadow-sm transition">
@@ -227,6 +257,11 @@
               초기화
             </button>
           </div>
+        </div>
+
+        <!-- 권장 시간 초과 경고 알림 박스 -->
+        <div id="timeWarningBox" class="hidden bg-amber-50 border border-amber-300 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-bold animate-pulse">
+          ⚠️ 권장 시간이 지났습니다! 마무리 문장으로 넘어가거나 핵심 내용을 정돈해 주세요.
         </div>
 
         <p id="statusMsg" class="text-xs text-rose-600 font-semibold hidden animate-pulse">
@@ -294,21 +329,21 @@
     };
 
     const OPIC_MASTER_POOL = [
-      { category: "Q1. 자기소개 (Background)", text: "Let's start the interview. Tell me a little bit about yourself, where you live, and what you usually do in your free time." },
-      { category: "Q2. 루틴 묘사 (Habits)", text: "You indicated in the survey that you like to go to the park. What do you usually do when you go there? Who do you go with, and what is your typical routine?" },
-      { category: "Q3. 장소 묘사 (Place)", text: "Describe the park you visit most often. What does it look like, what are its main features, and why do you like going there?" },
-      { category: "Q4. 과거 경험 (Experience)", text: "Tell me about a memorable time you went to a park recently. What happened, who did you go with, and why was it so unforgettable?" },
-      { category: "Q5. 루틴 묘사 (Habits)", text: "You mentioned that you enjoy listening to music. What kind of music do you like best? When and where do you usually listen to it?" },
-      { category: "Q6. 장소 묘사 (Place)", text: "Where do you usually go to listen to music or buy music albums? Describe the place in detail." },
-      { category: "Q7. 과거 경험 (Experience)", text: "Tell me about an unforgettable concert or live performance you attended. Who was performing, and why did it leave such a strong impression on you?" },
-      { category: "Q8. 심화 콤보 (Advanced)", text: "What kind of changes have you noticed in the music industry or how people consume music nowadays compared to the past?" },
-      { category: "Q9. 루틴 묘사 (Habits)", text: "Tell me about your cooking habits. What kind of food do you like to cook the most, and how do you prepare it step by step?" },
-      { category: "Q10. 과거 경험 (Experience)", text: "Describe a time when you tried cooking a brand new recipe. What was the dish, what challenges did you face, and how did it turn out?" },
-      { category: "Q11. 심화 콤보 (Advanced)", text: "When you have problems or issues while cooking, how do you usually solve them? Share a specific incident." },
-      { category: "Q12. 돌발/사회이슈 (Issue)", text: "Talk about recycling issues in your country. How do people sort their garbage, and what are the rules in your neighborhood?" },
-      { category: "Q13. 돌발/사회이슈 (Issue)", text: "Describe the transportation system in your city. What are the most popular ways to get around, and what problems do commuters face?" },
-      { category: "Q14. 롤플레이 (Role-play)", text: "You want to buy a new furniture item for your home. Call a furniture store, explain what you are looking for, and ask three or four questions about the delivery and warranty." },
-      { category: "Q15. 롤플레이 (Role-play)", text: "Here is a situation: You planned to meet a friend at a coffee shop, but you are running late because of unexpected traffic. Call your friend, explain your situation, and suggest two alternative plans." }
+      { category: "Q1. 자기소개 (Background)", text: "Let's start the interview. Tell me a little bit about yourself, where you live, and what you usually do in your free time.", type: "routine" },
+      { category: "Q2. 루틴 묘사 (Habits)", text: "You indicated in the survey that you like to go to the park. What do you usually do when you go there? Who do you go with, and what is your typical routine?", type: "routine" },
+      { category: "Q3. 장소 묘사 (Place)", text: "Describe the park you visit most often. What does it look like, what are its main features, and why do you like going there?", type: "routine" },
+      { category: "Q4. 과거 경험 (Experience)", text: "Tell me about a memorable time you went to a park recently. What happened, who did you go with, and why was it so unforgettable?", type: "experience" },
+      { category: "Q5. 루틴 묘사 (Habits)", text: "You mentioned that you enjoy listening to music. What kind of music do you like best? When and where do you usually listen to it?", type: "routine" },
+      { category: "Q6. 장소 묘사 (Place)", text: "Where do you usually go to listen to music or buy music albums? Describe the place in detail.", type: "routine" },
+      { category: "Q7. 과거 경험 (Experience)", text: "Tell me about an unforgettable concert or live performance you attended. Who was performing, and why did it leave such a strong impression on you?", type: "experience" },
+      { category: "Q8. 심화 콤보 (Advanced)", text: "What kind of changes have you noticed in the music industry or how people consume music nowadays compared to the past?", type: "experience" },
+      { category: "Q9. 루틴 묘사 (Habits)", text: "Tell me about your cooking habits. What kind of food do you like to cook the most, and how do you prepare it step by step?", type: "routine" },
+      { category: "Q10. 과거 경험 (Experience)", text: "Describe a time when you tried cooking a brand new recipe. What was the dish, what challenges did you face, and how did it turn out?", type: "experience" },
+      { category: "Q11. 심화 콤보 (Advanced)", text: "When you have problems or issues while cooking, how do you usually solve them? Share a specific incident.", type: "experience" },
+      { category: "Q12. 돌발/사회이슈 (Issue)", text: "Talk about recycling issues in your country. How do people sort their garbage, and what are the rules in your neighborhood?", type: "experience" },
+      { category: "Q13. 돌발/사회이슈 (Issue)", text: "Describe the transportation system in your city. What are the most popular ways to get around, and what problems do commuters face?", type: "routine" },
+      { category: "Q14. 롤플레이 (Role-play)", text: "You want to buy a new furniture item for your home. Call a furniture store, explain what you are looking for, and ask three or four questions about the delivery and warranty.", type: "experience" },
+      { category: "Q15. 롤플레이 (Role-play)", text: "Here is a situation: You planned to meet a friend at a coffee shop, but you are running late because of unexpected traffic. Call your friend, explain your situation, and suggest two alternative plans.", type: "experience" }
     ];
 
     let questions = [];
@@ -317,6 +352,9 @@
     let isRecording = false;
     let timerInterval = null;
     let secondsElapsed = 0;
+    let loadingTimer = null;
+    let elapsedSecondsCount = 0;
+    let targetGrade = "AL";
 
     window.onload = () => {
       renderSurveyCheckboxes();
@@ -336,15 +374,22 @@
 
     function toggleApiModal() { document.getElementById('apiModal').classList.toggle('hidden'); }
 
-    function showLoading(title, desc) {
-      document.getElementById('loadingTitle').innerText = title;
-      document.getElementById('loadingDesc').innerText = desc;
-      document.getElementById('progressBar').style.width = '60%';
+    // 채점 소요 시간 및 예상 안내 로딩 바 제어
+    function showLoading() {
+      elapsedSecondsCount = 0;
+      document.getElementById('elapsedSec').innerText = elapsedSecondsCount;
+      document.getElementById('progressBar').style.width = '50%';
       document.getElementById('loadingOverlay').classList.remove('hidden');
-      setTimeout(() => { document.getElementById('progressBar').style.width = '90%'; }, 800);
+
+      loadingTimer = setInterval(() => {
+        elapsedSecondsCount++;
+        document.getElementById('elapsedSec').innerText = elapsedSecondsCount;
+        if (elapsedSecondsCount === 3) document.getElementById('progressBar').style.width = '85%';
+      }, 1000);
     }
 
     function hideLoading() {
+      clearInterval(loadingTimer);
       document.getElementById('progressBar').style.width = '100%';
       setTimeout(() => {
         document.getElementById('loadingOverlay').classList.add('hidden');
@@ -427,10 +472,14 @@
     }
 
     function generateFastMockTest() {
+      targetGrade = document.querySelector('input[name="target_grade"]:checked')?.value || 'AL';
+      document.getElementById('targetGradeBadge').innerText = `목표 등급: ${targetGrade}`;
+
       questions = OPIC_MASTER_POOL.map((q, idx) => ({
         id: idx + 1,
         category: q.category,
         text: q.text,
+        type: q.type,
         attempts: []
       }));
 
@@ -467,6 +516,15 @@
       renderNavTabs();
 
       document.getElementById('qCategory').innerText = q.category;
+      
+      // 문항 유형에 따른 최대 시간 라벨 설정 (묘사/루틴: Max 1:30, 경험/롤플: Max 2:00)
+      const maxTimeLabel = document.getElementById('maxTimeLabel');
+      if (q.type === 'routine') {
+        maxTimeLabel.innerText = "권장 1:00 / Max 1:30";
+      } else {
+        maxTimeLabel.innerText = "권장 1:30 / Max 2:00";
+      }
+
       const qTextEl = document.getElementById('qText');
       qTextEl.innerText = q.text;
       qTextEl.classList.add('hidden');
@@ -491,13 +549,32 @@
     }
 
     function clearAnswer() { document.getElementById('answerInput').value = ''; resetTimer(); }
+    
     function startTimer() {
       secondsElapsed = 0;
       updateTimerDisplay();
-      timerInterval = setInterval(() => { secondsElapsed++; updateTimerDisplay(); }, 1000);
+      document.getElementById('timeWarningBox').classList.add('hidden');
+
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        updateTimerDisplay();
+
+        const q = questions[currentQIndex];
+        // 권장 시간 초과 체크 (routine형은 60초 초과 시, experience형은 90초 초과 시)
+        const recSeconds = q.type === 'routine' ? 60 : 90;
+        if (secondsElapsed === recSeconds) {
+          document.getElementById('timeWarningBox').classList.remove('hidden');
+        }
+      }, 1000);
     }
+
     function stopTimer() { clearInterval(timerInterval); }
-    function resetTimer() { stopTimer(); secondsElapsed = 0; updateTimerDisplay(); }
+    function resetTimer() { 
+      stopTimer(); 
+      secondsElapsed = 0; 
+      updateTimerDisplay(); 
+      document.getElementById('timeWarningBox').classList.add('hidden');
+    }
 
     function updateTimerDisplay() {
       const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
@@ -553,13 +630,12 @@
       alert('새로운 회차 녹음을 시작합니다! 첫 문장에 MP(결론)를 넣고 답변해 보세요.');
     }
 
-    // [⚡ 초고속 채점 함수: 프롬프트 압축 및 토큰 제한으로 응답 속도 극대화]
     async function evaluateAnswer() {
       const transcript = document.getElementById('answerInput').value.trim();
       if (!transcript) return alert('먼저 답변을 말씀하시거나 입력란에 적어주세요!');
       if (isRecording) toggleRecording();
 
-      showLoading('초고속 AI 채점 중', '첫 문장 MP(두괄식) 구조와 핵심 영역을 빠르게 분석하고 있습니다...');
+      showLoading();
 
       const apiKey = localStorage.getItem('GEMINI_API_KEY') || document.getElementById('apiKeyInput').value.trim();
       if (!apiKey) {
@@ -570,15 +646,14 @@
       }
 
       const q = questions[currentQIndex];
-      // 속도를 극대화하기 위해 불필요한 수식어를 덜어내고 핵심 압축 프롬프트 적용
-      const prompt = `ACTFL OPIc evaluator. Goal: AL. Check if answer starts with MP (Main Point) in the first sentence.
+      const prompt = `ACTFL OPIc evaluator. User's target grade is '${targetGrade}'. Check if answer starts with MP (Main Point) in the first sentence.
 Question: ${q.text}
 Answer: ${transcript}
 
 Return ONLY valid JSON format:
 {
   "estimated_grade": "IM2, IM3, IH, or AL",
-  "overall_comment": "Korean 2 sentences evaluating MP first sentence structure.",
+  "overall_comment": "Korean 2 sentences evaluating MP first sentence structure against target grade '${targetGrade}'.",
   "actfl_evaluation": {
     "functions_tasks": { "score": "상/중/하", "feedback": "brief feedback" },
     "context_content": { "score": "상/중/하", "feedback": "brief feedback" },
@@ -586,7 +661,7 @@ Return ONLY valid JSON format:
     "text_type": { "score": "상/중/하", "feedback": "MP first-sentence structure feedback" }
   },
   "al_upgrade_points": ["tip 1", "tip 2"],
-  "al_model_answer": "English model script with clear MP in first sentence."
+  "al_model_answer": "English model script with clear MP in first sentence aiming for '${targetGrade}'."
 }`;
 
       try {
@@ -597,8 +672,8 @@ Return ONLY valid JSON format:
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: { 
               responseMimeType: "application/json", 
-              temperature: 0.3, // 속도 향상을 위한 낮은 온도 설정
-              maxOutputTokens: 800 // 답변 길이 제한으로 응답 속도 단축
+              temperature: 0.3,
+              maxOutputTokens: 800
             }
           })
         });
@@ -664,7 +739,7 @@ Return ONLY valid JSON format:
         ${comparisonHtml}
         <div class="bg-slate-900 text-white p-5 rounded-xl flex items-center justify-between gap-4">
           <div class="space-y-1">
-            <span class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">#${item.attemptNum}차 시도 회차별 분석 리포트</span>
+            <span class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">#${item.attemptNum}차 시도 회차별 분석 리포트 (목표: ${targetGrade})</span>
             <p class="text-sm text-slate-100 leading-relaxed">${r.overall_comment}</p>
           </div>
           <div class="text-center shrink-0 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700">
@@ -709,7 +784,7 @@ Return ONLY valid JSON format:
         </div>
 
         <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
-          <div class="font-bold text-amber-900 text-sm mb-2">🚀 AL 등급 점프를 위한 MP 선제시 개선 포인트</div>
+          <div class="font-bold text-amber-900 text-sm mb-2">🚀 목표 등급 점프를 위한 MP 선제시 개선 포인트</div>
           <ul class="list-disc pl-5 space-y-1 text-amber-800 text-xs leading-relaxed">
             ${r.al_upgrade_points.map(pt => `<li>${pt}</li>`).join('')}
           </ul>
@@ -717,7 +792,7 @@ Return ONLY valid JSON format:
 
         <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-2">
           <div class="flex justify-between items-center">
-            <div class="font-bold text-emerald-900 text-sm">✨ 첫 문장 MP 선제시 AL 모범 스크립트</div>
+            <div class="font-bold text-emerald-900 text-sm">✨ 첫 문장 MP 선제시 모범 스크립트</div>
             <button onclick="speakModelAnswer('${safeModelAnswer}')" 
                     class="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded hover:bg-emerald-500 font-semibold">
               🔊 모범답안 발음 듣기
