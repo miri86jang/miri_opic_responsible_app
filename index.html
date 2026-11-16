@@ -14,12 +14,15 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
-          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.7.1 (피드백 통합 패치)</span>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.7.2 (마이페이지 추가)</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">429 재시도 캐시 + 실시간 자막(true) + 0초 지표 렌더링 + 2단 비동기 첨삭 안정화</p>
+        <p class="text-xs text-slate-500 mt-1">설문조사 → 0초 15문항 → 실시간 자막 녹음 → 2단 초고속 채점 → 📌 마이페이지(스크립트 보관함)</p>
       </div>
-      <div class="flex gap-3">
-        <button onclick="resetToSurvey()" id="backToSurveyBtn" class="hidden text-xs bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-slate-300">
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="goToMypage()" class="text-xs bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg font-bold hover:bg-indigo-500 shadow-sm flex items-center gap-1">
+          👤 Go to mypage
+        </button>
+        <button onclick="resetToSurvey()" id="backToSurveyBtn" class="hidden text-xs bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-lg font-semibold hover:bg-slate-300">
           📋 설문 다시 하기
         </button>
         <button onclick="toggleApiModal()" class="text-xs text-slate-400 hover:text-slate-600 underline">
@@ -36,6 +39,33 @@
                class="border rounded-lg px-3 py-1.5 w-full font-mono text-slate-600">
         <button onclick="saveApiKey()" class="bg-slate-800 text-white px-4 py-1.5 rounded-lg shrink-0">저장</button>
         <button onclick="toggleApiModal()" class="bg-slate-200 text-slate-700 px-4 py-1.5 rounded-lg shrink-0">닫기</button>
+      </div>
+    </div>
+
+    <!-- ==================== 마이페이지 모달 (스크립트 보관함) ==================== -->
+    <div id="mypageModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-3xl max-h-[85vh] rounded-2xl p-6 shadow-2xl border border-slate-100 flex flex-col space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <div>
+            <h2 class="text-lg font-extrabold text-indigo-900">📌 마이페이지 (나만의 답변 & 모범답안 스크립트 보관함)</h2>
+            <p class="text-xs text-slate-500">마음에 드는 답변을 수정하거나 TXT 파일로 다운로드하여 활용하세요.</p>
+          </div>
+          <button onclick="closeMypage()" class="bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-300">
+            ✕ 닫기
+          </button>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <span id="bookmarkCount" class="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">저장된 스크립트: 0개</span>
+          <button onclick="downloadAllBookmarksTxt()" class="bg-emerald-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-emerald-500 shadow-sm transition">
+            💾 전체 스크립트 TXT 파일로 다운로드
+          </button>
+        </div>
+
+        <!-- 북마크 리스트 출력 영역 -->
+        <div id="bookmarkListContainer" class="overflow-y-auto space-y-4 pr-2 flex-1 text-xs">
+          <!-- 동적 렌더링 -->
+        </div>
       </div>
     </div>
 
@@ -353,7 +383,8 @@
     let elapsedSecondsCount = 0;
     let targetGrade = "AL";
 
-    // API 캐시 객체
+    // 북마크 저장소 (마이페이지용)
+    let myBookmarks = JSON.parse(localStorage.getItem('MIRI_BOOKMARKS') || '[]');
     const apiCache = {};
 
     window.onload = () => {
@@ -373,6 +404,99 @@
     }
 
     function toggleApiModal() { document.getElementById('apiModal').classList.toggle('hidden'); }
+
+    // 마이페이지 모달 열기/닫기
+    function goToMypage() {
+      renderBookmarks();
+      document.getElementById('mypageModal').classList.remove('hidden');
+    }
+    function closeMypage() {
+      document.getElementById('mypageModal').classList.add('hidden');
+    }
+
+    // 북마크 추가 함수
+    function addBookmark(type, title, text) {
+      // 중복 체크
+      const exists = myBookmarks.some(b => b.text === text && b.title === title);
+      if (exists) {
+        alert('이미 마이페이지에 저장된 스크립트입니다!');
+        return;
+      }
+      myBookmarks.push({ id: Date.now(), type, title, text });
+      localStorage.setItem('MIRI_BOOKMARKS', JSON.stringify(myBookmarks));
+      alert('📌 마이페이지 보관함에 성공적으로 저장되었습니다!');
+    }
+
+    // 북마크 삭제 함수
+    function removeBookmark(id) {
+      myBookmarks = myBookmarks.filter(b => b.id !== id);
+      localStorage.setItem('MIRI_BOOKMARKS', JSON.stringify(myBookmarks));
+      renderBookmarks();
+    }
+
+    // 마이페이지 내부 리스트 렌더링 (인라인 수정 가능)
+    function renderBookmarks() {
+      const container = document.getElementById('bookmarkListContainer');
+      document.getElementById('bookmarkCount').innerText = `저장된 스크립트: ${myBookmarks.length}개`;
+
+      if (myBookmarks.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 text-slate-400">
+            아직 저장된 스크립트가 없습니다.<br>모의고사 채점 리포트에서 [📌 북마크에 저장] 버튼을 눌러보세요!
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = myBookmarks.map((b, idx) => `
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="bg-indigo-100 text-indigo-800 text-[10px] font-extrabold px-2 py-0.5 rounded">${b.type}</span>
+            <div class="flex gap-2">
+              <button onclick="saveEditedBookmark(${b.id})" class="text-indigo-600 font-bold hover:underline">수정 저장</button>
+              <button onclick="removeBookmark(${b.id})" class="text-rose-600 font-bold hover:underline">삭제</button>
+            </div>
+          </div>
+          <div class="font-bold text-slate-800 text-xs">${b.title}</div>
+          <textarea id="edit_bm_${b.id}" rows="3" class="w-full border rounded-lg p-2.5 text-xs bg-white leading-relaxed focus:outline-indigo-500">${b.text}</textarea>
+        </div>
+      `).join('');
+    }
+
+    // 수정된 내용 실시간 반영 저장
+    function saveEditedBookmark(id) {
+      const textarea = document.getElementById(`edit_bm_${id}`);
+      const newText = textarea.value.trim();
+      const item = myBookmarks.find(b => b.id === id);
+      if (item) {
+        item.text = newText;
+        localStorage.setItem('MIRI_BOOKMARKS', JSON.stringify(myBookmarks));
+        alert('수정된 내용이 마이페이지에 저장되었습니다.');
+      }
+    }
+
+    // 전체 북마크 TXT 파일 다운로드
+    function downloadAllBookmarksTxt() {
+      if (myBookmarks.length === 0) return alert('다운로드할 스크립트가 없습니다.');
+      
+      let content = "=== 미리오픽 (MiriOPIc) 나만의 스크립트 보관함 ===\n\n";
+      myBookmarks.forEach((b, idx) => {
+        content += `[${idx + 1}] 분류: ${b.type}\n`;
+        content += `질문/주제: ${b.title}\n`;
+        content += `내용:\n${b.text}\n`;
+        content += "--------------------------------------------------\n\n";
+      });
+
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `MiriOPIc_MyScripts_${new Date().toISOString().slice(0,10)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
 
     function showLoading() {
       elapsedSecondsCount = 0;
@@ -580,14 +704,13 @@
       if (badge) badge.innerText = `${mins}:${secs} (Max 2:00)`;
     }
 
-    // [7번 요구사항] 실시간 자막 (interimResults = true)
     function initSpeechRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) return;
       recognition = new SpeechRecognition();
       recognition.lang = 'en-US';
       recognition.continuous = true;
-      recognition.interimResults = true; // 실시간 자막 반영
+      recognition.interimResults = true;
 
       let finalTranscriptCache = '';
 
@@ -643,7 +766,7 @@
       alert('새로운 회차 녹음을 시작합니다! 첫 문장에 MP(결론)를 넣고 답변해 보세요.');
     }
 
-    // [4번, 8번 요구사항] 429 재시도 + 캐시 통합 함수 및 1500 토큰 상향
+    // 429 재시도 + 캐시 통합 함수 (1500 토큰 + 친화적 타임아웃 메시지)
     async function callGeminiRetry(promptText, maxTokens = 1500, retries = 3, delay = 2000) {
       if (apiCache[promptText]) {
         return apiCache[promptText];
@@ -659,7 +782,7 @@
       for (let attempt = 0; attempt < retries; attempt++) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 45000); // 45초 타임아웃
+          const timeoutId = setTimeout(() => controller.abort(), 45000);
 
           const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -696,7 +819,6 @@
           return parsed;
 
         } catch (err) {
-          // [5번 요구사항] 친화적 타임아웃/에러 메시지 번역
           if (err.name === 'AbortError' || err.message.includes('aborted')) {
             throw new Error('45초 타임아웃 - API가 느립니다. 다시 시도해주세요');
           }
@@ -708,7 +830,6 @@
       }
     }
 
-    // [4번 요구사항] 코드로 즉시 계산하는 Deterministic 지표 함수 (0초 계산)
     function computeDeterministicMetrics(transcript, questionText) {
       const cleanText = transcript.trim();
       const words = cleanText ? cleanText.split(/\s+/) : [];
@@ -731,7 +852,6 @@
       return { wordCount, wpm, fillerCount, ttr, keywordIncluded };
     }
 
-    // [1번, 2번, 3번 요구사항] 2단 분리 아키텍처 및 재시도 함수 통합
     async function evaluateAnswer() {
       const transcript = document.getElementById('answerInput').value.trim();
       if (!transcript) return alert('먼저 답변을 말씀하시거나 입력란에 적어주세요!');
@@ -771,12 +891,10 @@ Return ONLY valid JSON format for Stage 1:
         renderNavTabs();
         renderAttempts(currentAttemptIdx);
 
-        // 2단 비동기 생성 호출
         fetchStage2Async(q, currentAttemptIdx, transcript);
 
       } catch (err) {
         hideLoading();
-        // [5번 요구사항] 친화적 에러 가드
         let msg = err.message;
         if (msg.includes('aborted') || msg.includes('timeout')) {
           msg = '45초 타임아웃 - API가 느립니다. 다시 시도해주세요';
@@ -812,7 +930,6 @@ Return ONLY valid JSON for Stage 2 details:
       }
     }
 
-    // [1번, 2번, 3번 요구사항] 인덱스 기반 speakModelAnswer 및 안전한 렌더링
     function renderAttempts(attemptIdx) {
       const q = questions[currentQIndex];
       const container = document.getElementById('feedbackContainer');
@@ -847,6 +964,7 @@ Return ONLY valid JSON for Stage 2 details:
 
       let stage2Html = '';
       if (item.stage2) {
+        const safeModelAnswer = item.stage2.al_model_answer.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
         stage2Html = `
           <div id="stage2Details" class="space-y-4 pt-4 border-t border-slate-200 animate-fadeIn">
             <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
@@ -858,12 +976,16 @@ Return ONLY valid JSON for Stage 2 details:
             </div>
 
             <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-2">
-              <div class="flex justify-between items-center">
+              <div class="flex justify-between items-center flex-wrap gap-2">
                 <div class="font-bold text-emerald-900 text-sm">✨ 첫 문장 MP 선제시 모범 스크립트</div>
-                <button onclick="speakModelAnswer(${currentQIndex}, ${attemptIdx})" 
-                        class="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded hover:bg-emerald-500 font-semibold">
-                  🔊 모범답안 발음 듣기
-                </button>
+                <div class="flex gap-2">
+                  <button onclick="addBookmark('모범답안', '${q.category.replace(/'/g, "")}', \`${safeModelAnswer}\`)" class="text-xs bg-amber-500 text-white px-2.5 py-1 rounded hover:bg-amber-400 font-bold shadow-sm">
+                    📌 북마크에 저장
+                  </button>
+                  <button onclick="speakModelAnswer(${currentQIndex}, ${attemptIdx})" class="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded hover:bg-emerald-500 font-semibold">
+                    🔊 발음 듣기
+                  </button>
+                </div>
               </div>
               <p class="text-emerald-900 text-xs leading-relaxed italic">"${item.stage2.al_model_answer}"</p>
             </div>
@@ -876,6 +998,8 @@ Return ONLY valid JSON for Stage 2 details:
           </div>
         `;
       }
+
+      const safeTranscript = item.transcript.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
       document.getElementById('feedbackContent').innerHTML = `
         ${comparisonHtml}
@@ -892,7 +1016,7 @@ Return ONLY valid JSON for Stage 2 details:
           </div>
         </div>
 
-        <!-- [6번 요구사항] 코드로 즉시 계산된 Deterministic 0초 지표 카드 확실히 렌더링 -->
+        <!-- 0초 Deterministic 지표 카드 -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-2 text-center text-xs">
           <div class="bg-slate-50 border p-2.5 rounded-xl">
             <div class="text-slate-400">답변 길이</div>
@@ -916,11 +1040,17 @@ Return ONLY valid JSON for Stage 2 details:
           </div>
         </div>
 
-        <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-xs text-slate-600">
-          <span class="font-bold text-slate-800">🗣 내 답변 스크립트:</span> "${item.transcript}"
+        <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-xs text-slate-600 flex flex-col gap-2">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-slate-800">🗣 내 답변 스크립트 (#${item.attemptNum}차):</span>
+            <button onclick="addBookmark('내 답변', '${q.category.replace(/'/g, "")} (#${item.attemptNum}차)', \`${safeTranscript}\`)" class="text-xs bg-amber-500 text-white px-2.5 py-1 rounded hover:bg-amber-400 font-bold shadow-sm">
+              📌 내 답변 북마크에 저장
+            </button>
+          </div>
+          <p class="italic">"${item.transcript}"</p>
         </div>
 
-        <!-- [3번 요구사항] 2단 상세 첨삭 토글 버튼 및 컨테이너 -->
+        <!-- 2단 상세 첨삭 토글 -->
         <div class="pt-2">
           <button onclick="toggleStage2View()" id="stage2ToggleBtn" class="w-full bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs hover:bg-slate-300 transition">
             🔍 상세 첨삭 보기 (문법 교정 및 모범 답안 열기) ▼
@@ -944,7 +1074,6 @@ Return ONLY valid JSON for Stage 2 details:
       }
     }
 
-    // [2번 요구사항] 회차 인덱스로 안전하게 모델 답안 찾아서 재생
     function speakModelAnswer(qIdx, attIdx) {
       if (!('speechSynthesis' in window)) return;
       const targetAttempt = questions[qIdx]?.attempts[attIdx];
