@@ -14,9 +14,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
-          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.6.0</span>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.6.2</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">설문조사 & 목표등급 설정 → 실제 15문항 0초 로딩 → 스마트 녹음 타이머 → 초고속 MP 두괄식 채점</p>
+        <p class="text-xs text-slate-500 mt-1">설문조사 & 목표등급별 맞춤 시간 → 실제 15문항 0초 로딩 → 버튼 일체형 스마트 타이머 → 초고속 채점</p>
       </div>
       <div class="flex gap-3">
         <button onclick="resetToSurvey()" id="backToSurveyBtn" class="hidden text-xs bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-slate-300">
@@ -168,7 +168,7 @@
         </div>
       </div>
 
-      <!-- 목표 등급 선택 (추가됨) -->
+      <!-- 목표 등급 선택 -->
       <div class="border-t pt-5 space-y-3">
         <h2 class="text-base font-extrabold text-slate-800">🎯 목표 등급 설정 (Target Grade)</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
@@ -242,18 +242,14 @@
       <!-- 답변 및 스마트 녹음 영역 -->
       <div class="space-y-3">
         <div class="flex justify-between items-center flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-bold text-slate-700">🎙️ 나의 답변 (첫 문장 MP 두괄식 필수!)</label>
-            <div class="flex items-center gap-2">
-              <span id="timerBadge" class="text-xs font-mono font-bold bg-slate-200 text-slate-700 px-2 py-0.5 rounded">00:00</span>
-              <span id="maxTimeLabel" class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border">Max 1:30</span>
-            </div>
-          </div>
+          <label class="text-sm font-bold text-slate-700">🎙️ 나의 답변 (첫 문장 MP 두괄식 필수!)</label>
           <div class="flex gap-2">
-            <button id="recordBtn" onclick="toggleRecording()" class="bg-rose-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-rose-500 shadow-sm transition">
-              ● 말하기 시작
+            <!-- [말하기 시작] 버튼 내부에 타이머와 맥시멈 시간 통합 -->
+            <button id="recordBtn" onclick="toggleRecording()" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-rose-500 shadow-md transition flex items-center gap-2">
+              <span>● 말하기 시작</span>
+              <span id="btnTimerBadge" class="font-mono bg-rose-800/80 px-2 py-0.5 rounded text-xs">00:00 (Max 2:00)</span>
             </button>
-            <button onclick="clearAnswer()" class="bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-300">
+            <button onclick="clearAnswer()" class="bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-300">
               초기화
             </button>
           </div>
@@ -271,17 +267,19 @@
         <textarea id="answerInput" rows="5" placeholder="'말하기 시작'을 누르고 영어로 대답하세요. (첫 문장에 Main Point가 오도록 두괄식으로 작성!)"
                   class="w-full border border-slate-300 rounded-xl p-3.5 text-sm focus:outline-indigo-500 leading-relaxed"></textarea>
         
-        <div class="flex gap-2 flex-wrap">
-          <button id="evalBtn" onclick="evaluateAnswer()" class="flex-1 bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-500 transition shadow-md">
-            ⚡ 초고속 채점 및 MP 피드백 받기
+        <!-- 초고속채점 / 재도전하기 버튼 50:50 균형 배치 -->
+        <div class="grid grid-cols-2 gap-3">
+          <button id="evalBtn" onclick="evaluateAnswer()" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-500 transition shadow-md text-sm">
+            ⚡ 초고속 채점 및 MP 피드백
           </button>
-          <button onclick="addNewAttempt()" class="bg-amber-600 text-white font-semibold px-4 py-3.5 rounded-xl hover:bg-amber-500 transition text-sm">
-            🔄 이 문제 재도전(다시 녹음)하기
-          </button>
-          <button onclick="nextQuestion()" class="bg-slate-800 text-white font-semibold px-5 py-3.5 rounded-xl hover:bg-slate-700 transition text-sm">
-            다음 문항으로 →
+          <button onclick="addNewAttempt()" class="w-full bg-amber-600 text-white font-bold py-3.5 rounded-xl hover:bg-amber-500 transition shadow-md text-sm">
+            🔄 이 문제 재도전하기 (재녹음)
           </button>
         </div>
+
+        <button onclick="nextQuestion()" class="w-full bg-slate-800 text-white font-semibold py-3 rounded-xl hover:bg-slate-700 transition text-sm">
+          다음 문항으로 이동 →
+        </button>
       </div>
 
       <!-- 회차별 채점 리포트 및 변화 비교 영역 -->
@@ -329,21 +327,21 @@
     };
 
     const OPIC_MASTER_POOL = [
-      { category: "Q1. 자기소개 (Background)", text: "Let's start the interview. Tell me a little bit about yourself, where you live, and what you usually do in your free time.", type: "routine" },
-      { category: "Q2. 루틴 묘사 (Habits)", text: "You indicated in the survey that you like to go to the park. What do you usually do when you go there? Who do you go with, and what is your typical routine?", type: "routine" },
-      { category: "Q3. 장소 묘사 (Place)", text: "Describe the park you visit most often. What does it look like, what are its main features, and why do you like going there?", type: "routine" },
-      { category: "Q4. 과거 경험 (Experience)", text: "Tell me about a memorable time you went to a park recently. What happened, who did you go with, and why was it so unforgettable?", type: "experience" },
-      { category: "Q5. 루틴 묘사 (Habits)", text: "You mentioned that you enjoy listening to music. What kind of music do you like best? When and where do you usually listen to it?", type: "routine" },
-      { category: "Q6. 장소 묘사 (Place)", text: "Where do you usually go to listen to music or buy music albums? Describe the place in detail.", type: "routine" },
-      { category: "Q7. 과거 경험 (Experience)", text: "Tell me about an unforgettable concert or live performance you attended. Who was performing, and why did it leave such a strong impression on you?", type: "experience" },
-      { category: "Q8. 심화 콤보 (Advanced)", text: "What kind of changes have you noticed in the music industry or how people consume music nowadays compared to the past?", type: "experience" },
-      { category: "Q9. 루틴 묘사 (Habits)", text: "Tell me about your cooking habits. What kind of food do you like to cook the most, and how do you prepare it step by step?", type: "routine" },
-      { category: "Q10. 과거 경험 (Experience)", text: "Describe a time when you tried cooking a brand new recipe. What was the dish, what challenges did you face, and how did it turn out?", type: "experience" },
-      { category: "Q11. 심화 콤보 (Advanced)", text: "When you have problems or issues while cooking, how do you usually solve them? Share a specific incident.", type: "experience" },
-      { category: "Q12. 돌발/사회이슈 (Issue)", text: "Talk about recycling issues in your country. How do people sort their garbage, and what are the rules in your neighborhood?", type: "experience" },
-      { category: "Q13. 돌발/사회이슈 (Issue)", text: "Describe the transportation system in your city. What are the most popular ways to get around, and what problems do commuters face?", type: "routine" },
-      { category: "Q14. 롤플레이 (Role-play)", text: "You want to buy a new furniture item for your home. Call a furniture store, explain what you are looking for, and ask three or four questions about the delivery and warranty.", type: "experience" },
-      { category: "Q15. 롤플레이 (Role-play)", text: "Here is a situation: You planned to meet a friend at a coffee shop, but you are running late because of unexpected traffic. Call your friend, explain your situation, and suggest two alternative plans.", type: "experience" }
+      { category: "Q1. 자기소개 (Background)", text: "Let's start the interview. Tell me a little bit about yourself, where you live, and what you usually do in your free time.", subType: "intro" },
+      { category: "Q2. 루틴 묘사 (Habits)", text: "You indicated in the survey that you like to go to the park. What do you usually do when you go there? Who do you go with, and what is your typical routine?", subType: "routine" },
+      { category: "Q3. 장소 묘사 (Place)", text: "Describe the park you visit most often. What does it look like, what are its main features, and why do you like going there?", subType: "routine" },
+      { category: "Q4. 과거 경험 (Experience)", text: "Tell me about a memorable time you went to a park recently. What happened, who did you go with, and why was it so unforgettable?", subType: "experience" },
+      { category: "Q5. 루틴 묘사 (Habits)", text: "You mentioned that you enjoy listening to music. What kind of music do you like best? When and where do you usually listen to it?", subType: "routine" },
+      { category: "Q6. 장소 묘사 (Place)", text: "Where do you usually go to listen to music or buy music albums? Describe the place in detail.", subType: "routine" },
+      { category: "Q7. 과거 경험 (Experience)", text: "Tell me about an unforgettable concert or live performance you attended. Who was performing, and why did it leave such a strong impression on you?", subType: "experience" },
+      { category: "Q8. 심화 콤보 (Advanced)", text: "What kind of changes have you noticed in the music industry or how people consume music nowadays compared to the past?", subType: "compare" },
+      { category: "Q9. 루틴 묘사 (Habits)", text: "Tell me about your cooking habits. What kind of food do you like to cook the most, and how do you prepare it step by step?", subType: "routine" },
+      { category: "Q10. 과거 경험 (Experience)", text: "Describe a time when you tried cooking a brand new recipe. What was the dish, what challenges did you face, and how did it turn out?", subType: "experience" },
+      { category: "Q11. 심화 콤보 (Advanced)", text: "When you have problems or issues while cooking, how do you usually solve them? Share a specific incident.", subType: "experience" },
+      { category: "Q12. 돌발/사회이슈 (Issue)", text: "Talk about recycling issues in your country. How do people sort their garbage, and what are the rules in your neighborhood?", subType: "roleplay" },
+      { category: "Q13. 돌발/사회이슈 (Issue)", text: "Describe the transportation system in your city. What are the most popular ways to get around, and what problems do commuters face?", subType: "compare" },
+      { category: "Q14. 롤플레이 (Role-play)", text: "You want to buy a new furniture item for your home. Call a furniture store, explain what you are looking for, and ask three or four questions about the delivery and warranty.", subType: "roleplay" },
+      { category: "Q15. 롤플레이 (Role-play)", text: "Here is a situation: You planned to meet a friend at a coffee shop, but you are running late because of unexpected traffic. Call your friend, explain your situation, and suggest two alternative plans.", subType: "roleplay" }
     ];
 
     let questions = [];
@@ -374,7 +372,6 @@
 
     function toggleApiModal() { document.getElementById('apiModal').classList.toggle('hidden'); }
 
-    // 채점 소요 시간 및 예상 안내 로딩 바 제어
     function showLoading() {
       elapsedSecondsCount = 0;
       document.getElementById('elapsedSec').innerText = elapsedSecondsCount;
@@ -449,8 +446,6 @@
 
     function clearAllSurvey() {
       document.querySelectorAll('input[name="q1_job"], input[name="q2_stu"], input[name="q3_home"], input[name="sv_item"]').forEach(el => el.checked = false);
-      document.getElementById('sub_job_detail').classList.add('hidden');
-      document.getElementById('sub_stu_detail').classList.add('hidden');
       updateCount();
     }
 
@@ -479,7 +474,7 @@
         id: idx + 1,
         category: q.category,
         text: q.text,
-        type: q.type,
+        subType: q.subType,
         attempts: []
       }));
 
@@ -517,13 +512,8 @@
 
       document.getElementById('qCategory').innerText = q.category;
       
-      // 문항 유형에 따른 최대 시간 라벨 설정 (묘사/루틴: Max 1:30, 경험/롤플: Max 2:00)
-      const maxTimeLabel = document.getElementById('maxTimeLabel');
-      if (q.type === 'routine') {
-        maxTimeLabel.innerText = "권장 1:00 / Max 1:30";
-      } else {
-        maxTimeLabel.innerText = "권장 1:30 / Max 2:00";
-      }
+      // 등급에 따른 타이머 라벨 동적 표시
+      updateTimerBadgeLabel(0);
 
       const qTextEl = document.getElementById('qText');
       qTextEl.innerText = q.text;
@@ -552,16 +542,25 @@
     
     function startTimer() {
       secondsElapsed = 0;
-      updateTimerDisplay();
+      updateTimerBadgeLabel(secondsElapsed);
       document.getElementById('timeWarningBox').classList.add('hidden');
 
       timerInterval = setInterval(() => {
         secondsElapsed++;
-        updateTimerDisplay();
+        updateTimerBadgeLabel(secondsElapsed);
 
         const q = questions[currentQIndex];
-        // 권장 시간 초과 체크 (routine형은 60초 초과 시, experience형은 90초 초과 시)
-        const recSeconds = q.type === 'routine' ? 60 : 90;
+        
+        // 권장 시간 체크 (AL일 때와 이하일 때 구분)
+        let recSeconds = 60;
+        if (targetGrade === 'AL') {
+          if (q.subType === 'intro' || q.subType === 'routine') recSeconds = 70; // 1분 10초
+          else if (q.subType === 'experience' || q.subType === 'compare') recSeconds = 90; // 1분 30초
+          else if (q.subType === 'roleplay') recSeconds = 100; // 1분 40초
+        } else {
+          recSeconds = q.subType === 'routine' ? 60 : 90;
+        }
+
         if (secondsElapsed === recSeconds) {
           document.getElementById('timeWarningBox').classList.remove('hidden');
         }
@@ -572,14 +571,22 @@
     function resetTimer() { 
       stopTimer(); 
       secondsElapsed = 0; 
-      updateTimerDisplay(); 
+      updateTimerBadgeLabel(0);
       document.getElementById('timeWarningBox').classList.add('hidden');
     }
 
-    function updateTimerDisplay() {
-      const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
-      const secs = String(secondsElapsed % 60).padStart(2, '0');
-      document.getElementById('timerBadge').innerText = `${mins}:${secs}`;
+    // 버튼 내부 타이머 텍스트 및 권장/맥시멈 라벨 구성
+    function updateTimerBadgeLabel(sec) {
+      const mins = String(Math.floor(sec / 60)).padStart(2, '0');
+      const secs = String(sec % 60).padStart(2, '0');
+      
+      const q = questions[currentQIndex] || { subType: 'routine' };
+      let maxText = "Max 2:00";
+      
+      const badge = document.getElementById('btnTimerBadge');
+      if (badge) {
+        badge.innerText = `${mins}:${secs} (${maxText})`;
+      }
     }
 
     function initSpeechRecognition() {
@@ -611,14 +618,14 @@
         isRecording = true;
         recognition.start();
         startTimer();
-        btn.innerText = '⏹ 말하기 종료';
+        btn.querySelector('span:first-child').innerText = '⏹ 말하기 종료';
         btn.classList.replace('bg-rose-600', 'bg-slate-800');
         msg.classList.remove('hidden');
       } else {
         isRecording = false;
         recognition.stop();
         stopTimer();
-        btn.innerText = '● 말하기 시작';
+        btn.querySelector('span:first-child').innerText = '● 말하기 시작';
         btn.classList.replace('bg-slate-800', 'bg-rose-600');
         msg.classList.add('hidden');
       }
