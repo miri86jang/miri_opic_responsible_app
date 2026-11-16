@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
-          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.7.6 (TTS 오디오 락 해제 패치)</span>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.7.7 (오디오 스트리밍 완벽 패치)</span>
         </div>
         <p class="text-xs text-slate-500 mt-1">설문조사 → 0초 15문항 → 실시간 자막 녹음 → 초고속 채점 → 마이페이지(스크립트 보관함)</p>
       </div>
@@ -41,6 +41,9 @@
         <button onclick="toggleApiModal()" class="bg-slate-200 text-slate-700 px-4 py-1.5 rounded-lg shrink-0">닫기</button>
       </div>
     </div>
+
+    <!-- 숨겨진 오디오 재생 플레이어 -->
+    <audio id="ttsAudioPlayer" class="hidden"></audio>
 
     <!-- ==================== 마이페이지 모달 (스크립트 보관함) ==================== -->
     <div id="mypageModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -583,7 +586,8 @@
 
     function resetToSurvey() {
       if (isRecording) toggleRecording();
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      const player = document.getElementById('ttsAudioPlayer');
+      if (player) { player.pause(); player.src = ''; }
       document.getElementById('testSection').classList.add('hidden');
       document.getElementById('backToSurveyBtn').classList.add('hidden');
       document.getElementById('surveySection').classList.remove('hidden');
@@ -627,7 +631,8 @@
 
     function renderQuestion(index) {
       if (isRecording) toggleRecording();
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      const player = document.getElementById('ttsAudioPlayer');
+      if (player) { player.pause(); player.src = ''; }
       resetTimer();
       currentQIndex = index;
       const q = questions[index];
@@ -648,39 +653,32 @@
 
     function toggleScript() { document.getElementById('qText').classList.toggle('hidden'); }
     
-    // [최종 오디오 강제 잠금 해제 및 재생 함수]
+    // [혁신적 해결] 퍼블릭 Google Translate TTS API 스트리밍 오디오 재생 방식으로 완전 전환
     function playQuestionTTS() {
-      if (!('speechSynthesis' in window)) {
-        alert('이 브라우저는 음성 재생을 지원하지 않습니다.');
-        return;
-      }
-
-      window.speechSynthesis.cancel();
-
-      // 브라우저 오디오 시스템 락(Lock) 해제를 위한 Web Audio Context 활성화 신호 강제 주입
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-          const audioCtx = new AudioContext();
-          if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-          }
-        }
-      } catch (e) {}
-
       const textToPlay = questions[currentQIndex].text;
-      const utterance = new SpeechSynthesisUtterance(textToPlay);
-      utterance.lang = 'en-US';
-      utterance.rate = 0.95;
+      playAudioStream(textToPlay);
+    }
 
-      utterance.onerror = (e) => {
-        console.error('TTS 재생 에러:', e);
-      };
+    function speakModelAnswer(qIdx, attIdx) {
+      const targetAttempt = questions[qIdx]?.attempts[attIdx];
+      const textToSpeak = targetAttempt?.stage2?.al_model_answer;
+      if (!textToSpeak) return alert('모범 답안이 아직 생성 중입니다. 잠시만 기다려주세요!');
+      playAudioStream(textToSpeak);
+    }
 
-      // 큐가 쌓여서 씹히는 현상을 막기 위한 타임아웃 래퍼
-      setTimeout(() => {
-        window.speechSynthesis.speak(utterance);
-      }, 50);
+    function playAudioStream(text) {
+      const player = document.getElementById('ttsAudioPlayer');
+      if (!player) return;
+      
+      player.pause();
+      // 구글 퍼블릭 TTS 엔드포인트를 통해 자연스러운 원어민 MP3 스트리밍 URL 생성
+      const encodedText = encodeURIComponent(text);
+      player.src = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en&client=tw-ob`;
+      
+      player.play().catch(e => {
+        console.error('오디오 재생 실패:', e);
+        alert('브라우저 오디오 정책으로 인해 재생이 차단되었습니다. 화면을 한 번 클릭한 뒤 다시 시도해 주세요.');
+      });
     }
 
     function clearAnswer() { document.getElementById('answerInput').value = ''; resetTimer(); }
@@ -1089,29 +1087,6 @@ Return ONLY valid JSON for Stage 2 details:
         wrapper.classList.add('hidden');
         btn.innerText = '🔍 상세 첨삭 보기 (문법 교정 및 모범 답안 열기) ▼';
       }
-    }
-
-    function speakModelAnswer(qIdx, attIdx) {
-      if (!('speechSynthesis' in window)) return;
-      const targetAttempt = questions[qIdx]?.attempts[attIdx];
-      const textToSpeak = targetAttempt?.stage2?.al_model_answer;
-      if (!textToSpeak) return alert('모범 답안이 아직 생성 중입니다. 잠시만 기다려주세요!');
-
-      window.speechSynthesis.cancel();
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-          const audioCtx = new AudioContext();
-          if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
-      } catch (e) {}
-
-      setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance(textToSpeak);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.95;
-        window.speechSynthesis.speak(utterance);
-      }, 50);
     }
   </script>
 </body>
