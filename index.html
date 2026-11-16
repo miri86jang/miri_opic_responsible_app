@@ -14,9 +14,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
-          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.7.4 (꿀설문 버튼 완벽 수정)</span>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.7.5 (TTS 오디오 강제 활성화)</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">설문조사 꿀설문 버튼 패치완료 → 0초 15문항 → 실시간 자막 녹음 → 초고속 채점 → 마이페이지</p>
+        <p class="text-xs text-slate-500 mt-1">설문조사 꿀설문 패치 → 0초 15문항 → 실시간 자막 녹음 → 초고속 채점 → 마이페이지</p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button onclick="goToMypage()" class="text-xs bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg font-bold hover:bg-indigo-500 shadow-sm flex items-center gap-1">
@@ -323,7 +323,6 @@
   </div>
 
   <script>
-    // [설문 데이터베이스]
     const SURVEY_DB = {
       leisure: [
         { label: "영화보기", val: "영화보기 (Going to movie theaters)", rec: true },
@@ -512,7 +511,6 @@
       }, 200);
     }
 
-    // [수정 완료] 여가/취미/운동/휴가 항목 렌더링 함수
     function renderSurveyCheckboxes() {
       const renderGroup = (containerId, list) => {
         const el = document.getElementById(containerId);
@@ -546,7 +544,6 @@
       if (selected) sub.classList.remove('hidden');
     }
 
-    // [수정 완료] 국민 꿀설문 세팅 원클릭 적용 함수
     function applyPopularPreset() {
       const jobRadio = document.querySelector('input[name="q1_job"][value*="일 경험 없음"]');
       if (jobRadio) { jobRadio.checked = true; handleJobChange(); }
@@ -651,13 +648,30 @@
 
     function toggleScript() { document.getElementById('qText').classList.toggle('hidden'); }
     
+    // [초특급 TTS 오디오 강제 활성화 패치]
     function playQuestionTTS() {
-      if (!('speechSynthesis' in window)) return;
+      if (!('speechSynthesis' in window)) {
+        alert('이 브라우저는 음성 재생을 지원하지 않습니다.');
+        return;
+      }
+
       window.speechSynthesis.cancel();
+
+      // 브라우저 오디오 엔진 깨우기용 빈 발화 (Silent unlock)
+      const dummy = new SpeechSynthesisUtterance('');
+      window.speechSynthesis.speak(dummy);
+
       setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance(questions[currentQIndex].text);
+        const textToPlay = questions[currentQIndex].text;
+        const utterance = new SpeechSynthesisUtterance(textToPlay);
         utterance.lang = 'en-US';
         utterance.rate = 0.95;
+
+        utterance.onerror = (e) => {
+          console.error('TTS 재생 에러:', e);
+          alert('음성 재생 중 오류가 발생했습니다. 기기 음소거 상태나 브라우저 소리 허용 여부를 확인해 주세요.');
+        };
+
         window.speechSynthesis.speak(utterance);
       }, 50);
     }
@@ -1077,6 +1091,9 @@ Return ONLY valid JSON for Stage 2 details:
       if (!textToSpeak) return alert('모범 답안이 아직 생성 중입니다. 잠시만 기다려주세요!');
 
       window.speechSynthesis.cancel();
+      // 브라우저 오디오 언락 더미 발화
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+
       setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
         utterance.lang = 'en-US';
