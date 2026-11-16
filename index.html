@@ -14,9 +14,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
-          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.7.5 (TTS 오디오 강제 활성화)</span>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.7.6 (TTS 오디오 락 해제 패치)</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">설문조사 꿀설문 패치 → 0초 15문항 → 실시간 자막 녹음 → 초고속 채점 → 마이페이지</p>
+        <p class="text-xs text-slate-500 mt-1">설문조사 → 0초 15문항 → 실시간 자막 녹음 → 초고속 채점 → 마이페이지(스크립트 보관함)</p>
       </div>
       <div class="flex gap-2 flex-wrap">
         <button onclick="goToMypage()" class="text-xs bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg font-bold hover:bg-indigo-500 shadow-sm flex items-center gap-1">
@@ -648,7 +648,7 @@
 
     function toggleScript() { document.getElementById('qText').classList.toggle('hidden'); }
     
-    // [초특급 TTS 오디오 강제 활성화 패치]
+    // [최종 오디오 강제 잠금 해제 및 재생 함수]
     function playQuestionTTS() {
       if (!('speechSynthesis' in window)) {
         alert('이 브라우저는 음성 재생을 지원하지 않습니다.');
@@ -657,21 +657,28 @@
 
       window.speechSynthesis.cancel();
 
-      // 브라우저 오디오 엔진 깨우기용 빈 발화 (Silent unlock)
-      const dummy = new SpeechSynthesisUtterance('');
-      window.speechSynthesis.speak(dummy);
+      // 브라우저 오디오 시스템 락(Lock) 해제를 위한 Web Audio Context 활성화 신호 강제 주입
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          const audioCtx = new AudioContext();
+          if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+        }
+      } catch (e) {}
 
+      const textToPlay = questions[currentQIndex].text;
+      const utterance = new SpeechSynthesisUtterance(textToPlay);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.95;
+
+      utterance.onerror = (e) => {
+        console.error('TTS 재생 에러:', e);
+      };
+
+      // 큐가 쌓여서 씹히는 현상을 막기 위한 타임아웃 래퍼
       setTimeout(() => {
-        const textToPlay = questions[currentQIndex].text;
-        const utterance = new SpeechSynthesisUtterance(textToPlay);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.95;
-
-        utterance.onerror = (e) => {
-          console.error('TTS 재생 에러:', e);
-          alert('음성 재생 중 오류가 발생했습니다. 기기 음소거 상태나 브라우저 소리 허용 여부를 확인해 주세요.');
-        };
-
         window.speechSynthesis.speak(utterance);
       }, 50);
     }
@@ -1091,8 +1098,13 @@ Return ONLY valid JSON for Stage 2 details:
       if (!textToSpeak) return alert('모범 답안이 아직 생성 중입니다. 잠시만 기다려주세요!');
 
       window.speechSynthesis.cancel();
-      // 브라우저 오디오 언락 더미 발화
-      window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          const audioCtx = new AudioContext();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+      } catch (e) {}
 
       setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(textToSpeak);
