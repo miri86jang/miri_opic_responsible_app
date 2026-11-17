@@ -5,8 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>미리오픽 (MiriOPIc) - OPIc AL 실전 모의고사 튜터</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* ==================== TTS 애드온 전용 스타일 ==================== */
+    .tts-para {
+      transition: all 0.25s ease;
+      border-left: 3px solid transparent;
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+    .tts-active-para {
+      background-color: #eff6ff !important; /* 파란색 문단 배경 하이라이트 */
+      border-left-color: #2563eb !important;
+      box-shadow: 0 1px 4px rgba(37, 99, 235, 0.12);
+    }
+    .tts-sent {
+      transition: background-color 0.15s ease, color 0.15s ease;
+      border-radius: 4px;
+      padding: 1px 2px;
+    }
+    .tts-active-sent {
+      background-color: #bfdbfe !important; /* 진한 파란색 문장 하이라이트 */
+      color: #1e3a8a !important;
+      font-weight: 700;
+    }
+    /* 인쇄 시 TTS 관련 UI 요소 전체 숨김 */
+    @media print {
+      .no-print, #ttsFloatingPanel, .tts-btn-group {
+        display: none !important;
+      }
+      body {
+        background: #fff !important;
+        padding: 0 !important;
+      }
+    }
+  </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8">
+<body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8 pb-24">
   <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 border border-slate-200 space-y-6">
     
     <!-- 상단 헤더 -->
@@ -14,11 +49,11 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
-          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.8.1 (1000+ 랜덤 문제은행)</span>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.9.0 (프로 TTS 애드온 & 완전체 리포트)</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">설문 맞춤 1,000+ 랜덤 조합 출제 → 듀얼 TTS 오디오 → 실시간 자막 → 초고속 2단 채점 → 마이페이지</p>
+        <p class="text-xs text-slate-500 mt-1">1,000+ 랜덤 문제은행 → 문장/문단 하이라이트 TTS → 0초 지표 + 강점/약점/ACTFL 2단 채점 → 마이페이지</p>
       </div>
-      <div class="flex gap-2 flex-wrap">
+      <div class="flex gap-2 flex-wrap no-print">
         <button onclick="goToMypage()" class="text-xs bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg font-bold hover:bg-indigo-500 shadow-sm flex items-center gap-1">
           👤 Go to mypage
         </button>
@@ -35,7 +70,7 @@
     </div>
 
     <!-- API 설정 영역 -->
-    <div id="apiModal" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+    <div id="apiModal" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs no-print">
       <div class="font-bold text-slate-700">Gemini API Key 설정 (구글 AI Studio에서 발급받은 키 입력) - 채점에 사용됩니다</div>
       <div class="flex gap-2">
         <input type="password" id="apiKeyInput" placeholder="AIzaSy...로 시작하는 키 입력" 
@@ -46,10 +81,10 @@
     </div>
 
     <!-- 비상용 클라우드 오디오 플레이어 -->
-    <audio id="fallbackAudioPlayer" class="hidden"></audio>
+    <audio id="fallbackAudioPlayer" class="hidden no-print"></audio>
 
     <!-- ==================== 마이페이지 모달 (스크립트 보관함) ==================== -->
-    <div id="mypageModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div id="mypageModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
       <div class="bg-white w-full max-w-3xl max-h-[85vh] rounded-2xl p-6 shadow-2xl border border-slate-100 flex flex-col space-y-4">
         <div class="flex justify-between items-center border-b pb-3">
           <div>
@@ -73,18 +108,18 @@
     </div>
 
     <!-- ==================== 초고속 채점 로딩 프로그레스 바 ==================== -->
-    <div id="loadingOverlay" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
       <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl border border-slate-100 space-y-4 text-center">
         <div class="inline-block p-3 bg-indigo-50 rounded-full text-indigo-600 animate-bounce">⚡</div>
         <div class="space-y-1">
           <h3 id="loadingTitle" class="text-base font-bold text-slate-900">1단 핵심 채점 및 2단 비동기 생성 중</h3>
-          <p id="loadingDesc" class="text-xs text-slate-500">결론(MP) 선제시 여부와 0초 지표를 즉시 계산하고 있습니다...</p>
-          <p class="text-[11px] font-bold text-amber-600 mt-1">⏳ 소요 시간: 약 1~2초 (경과 시간: <span id="elapsedSec">0</span>초)</p>
+          <p id="loadingDesc" class="text-xs text-slate-500">결론(MP) 선제시 여부와 강점/약점, 0초 지표를 즉시 계산하고 있습니다...</p>
+          <p class="text-[11px] font-bold text-amber-600 mt-1">⏳ 소요 시간: 약 1~3초 (경과 시간: <span id="elapsedSec">0</span>초)</p>
         </div>
         <div class="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5 border">
           <div id="progressBar" class="bg-indigo-600 h-full rounded-full transition-all duration-200 w-[60%] animate-pulse"></div>
         </div>
-        <div id="loadingStep" class="text-[11px] font-semibold text-indigo-600">Retry & Cache 통합 시스템 가동 중...</div>
+        <div id="loadingStep" class="text-[11px] font-semibold text-indigo-600">Thinking Budget 0 / 초고속 응답 생성 중...</div>
       </div>
     </div>
 
@@ -250,35 +285,36 @@
     <div id="testSection" class="hidden space-y-6">
       
       <!-- 전체 문항 네비게이션 탭 (15문항) -->
-      <div class="bg-slate-100 p-3 rounded-xl space-y-2">
+      <div class="bg-slate-100 p-3 rounded-xl space-y-2 no-print">
         <div class="flex justify-between items-center text-xs font-bold text-slate-600">
-          <span>📌 OPIc 전체 15문항 목록 (매 시험마다 새로운 콤보 세트가 출제됩니다)</span>
+          <span>📌 OPIc 전체 15문항 목록 (클릭하여 이동, 완료된 문항은 등급 표시)</span>
           <span id="targetGradeBadge" class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-extrabold">목표 등급: AL</span>
         </div>
         <div class="flex gap-1.5 flex-wrap" id="navTabs"></div>
       </div>
 
-      <!-- 문제 카드 -->
+      <!-- 문제 카드 (우측 스피커 버튼: 질문 듣기 + 답변 전체 듣기 3단 루프) -->
       <div class="bg-indigo-50/70 border border-indigo-100 p-5 rounded-xl space-y-4">
         <div class="flex justify-between items-center flex-wrap gap-2">
           <span id="qCategory" class="text-xs font-extrabold uppercase tracking-wider bg-indigo-200 text-indigo-900 px-3 py-1 rounded-full"></span>
-          <div class="flex gap-2 flex-wrap">
-            <button id="evaPlayBtn" onclick="playQuestionTTS()" class="bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg text-sm font-semibold hover:bg-indigo-500 shadow-sm flex items-center gap-1 transition">
-              🔊 문제 듣기 (Eva)
+          <div class="flex gap-2 flex-wrap tts-btn-group no-print">
+            <button id="qSpeakBtn" onclick="TTSManager.playQuestion()" class="bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-500 shadow-sm flex items-center gap-1 transition">
+              🔊 질문 듣기
             </button>
-            <button onclick="toggleTtsMode()" id="ttsModeBtn" class="bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-300" title="소리가 안 나면 클릭하여 엔진을 전환하세요">
-              ⚙️ 음성모드: 기본
+            <button id="cardAnsSpeakBtn" onclick="TTSManager.cycleCardAnswer()" class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-500 shadow-sm flex items-center gap-1 transition">
+              🔊 답변 전체 듣기
             </button>
-            <button onclick="toggleScript()" class="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-slate-50">
+            <button onclick="toggleScript()" class="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-50">
               👀 질문 텍스트 보기
             </button>
           </div>
         </div>
-        <p id="qText" class="text-slate-800 font-medium leading-relaxed hidden border-t border-indigo-200/60 pt-3 text-sm"></p>
+        <!-- 질문 스크립트 (문장 단위 하이라이트 지원 컨테이너) -->
+        <div id="qTextContainer" class="text-slate-800 font-medium leading-relaxed hidden border-t border-indigo-200/60 pt-3 text-sm"></div>
       </div>
 
       <!-- 답변 및 스마트 녹음 영역 -->
-      <div class="space-y-3">
+      <div class="space-y-3 no-print">
         <div class="flex justify-between items-center flex-wrap gap-2">
           <label class="text-sm font-bold text-slate-700">🎙️ 나의 답변 (첫 문장 MP 두괄식 필수!)</label>
           <div class="flex gap-2">
@@ -321,7 +357,7 @@
       <div id="feedbackContainer" class="space-y-4 pt-6 border-t border-slate-200 hidden">
         <div class="flex justify-between items-center flex-wrap gap-2">
           <h3 class="text-lg font-extrabold text-slate-800">📊 회차별 성적 및 퀄리티 비교 리포트</h3>
-          <div id="attemptTabs" class="flex gap-1.5 flex-wrap"></div>
+          <div id="attemptTabs" class="flex gap-1.5 flex-wrap no-print"></div>
         </div>
         <div id="feedbackContent" class="space-y-4"></div>
       </div>
@@ -329,8 +365,67 @@
     </div>
   </div>
 
+  <!-- ==================== 우측 하단 TTS 컨트롤 패널 (접기 가능 & 인쇄 시 숨김) ==================== -->
+  <div id="ttsFloatingPanel" class="fixed bottom-4 right-4 z-40 no-print">
+    <!-- 접혔을 때 보이는 미니 버튼 -->
+    <button id="ttsPanelCollapsedBtn" onclick="TTSManager.togglePanel(false)" class="hidden bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-xl border border-slate-700 text-xs font-extrabold flex items-center gap-2 hover:bg-slate-800 transition">
+      <span>🔊 TTS 컨트롤러</span>
+      <span id="ttsMiniStatus" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    </button>
+
+    <!-- 펼쳐졌을 때 보이는 상세 패널 -->
+    <div id="ttsPanelExpanded" class="bg-slate-900 text-white w-80 rounded-2xl shadow-2xl border border-slate-700 p-4 space-y-3 text-xs">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+        <div class="flex items-center gap-1.5">
+          <span class="font-extrabold text-indigo-300">🎛️ 원어민 TTS 컨트롤 패널</span>
+          <span id="ttsStateBadge" class="bg-slate-700 text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold">대기 중</span>
+        </div>
+        <button onclick="TTSManager.togglePanel(true)" class="text-slate-400 hover:text-white font-bold px-1.5 py-0.5 rounded bg-slate-800" title="패널 접기">
+          ㅡ 접기
+        </button>
+      </div>
+
+      <!-- 보이스 선택 (자동 우선순위 적용됨) -->
+      <div class="space-y-1">
+        <label class="text-[11px] text-slate-400 font-semibold block">🎙️ 원어민 보이스 선택 (Neural 우선 자동선택)</label>
+        <select id="ttsVoiceSelect" onchange="TTSManager.changeVoice(this.value)" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-indigo-500">
+          <option value="">보이스 로딩 중...</option>
+        </select>
+      </div>
+
+      <!-- 배속 슬라이더 (0.75 ~ 1.15, 기본 1.0) -->
+      <div class="space-y-1">
+        <div class="flex justify-between text-[11px]">
+          <span class="text-slate-400 font-semibold">⚡ 재생 배속 (0.75x ~ 1.15x)</span>
+          <span id="ttsRateValue" class="font-mono font-extrabold text-amber-400">1.00x</span>
+        </div>
+        <input type="range" id="ttsRateSlider" min="0.75" max="1.15" step="0.05" value="1.0" 
+               oninput="TTSManager.changeRate(this.value)"
+               class="w-full accent-indigo-500 cursor-pointer h-1.5 bg-slate-700 rounded-lg">
+        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+          <span>0.75x</span>
+          <span>1.00x (기본)</span>
+          <span>1.15x</span>
+        </div>
+      </div>
+
+      <!-- 재생 제어 버튼 (일시정지/재개, 정지, 비상 호환모드) -->
+      <div class="grid grid-cols-3 gap-1.5 pt-1">
+        <button id="ttsPauseResumeBtn" onclick="TTSManager.togglePause()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg transition">
+          ⏸ 일시정지
+        </button>
+        <button onclick="TTSManager.stop()" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 rounded-lg transition">
+          ⏹ 정지
+        </button>
+        <button id="ttsFallbackToggleBtn" onclick="TTSManager.toggleFallback()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 rounded-lg transition text-[11px]" title="브라우저 음성이 안 나올 때 클릭">
+          ☁️ 클라우드: OFF
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // 1. 확장된 배경 설문조사 항목 (각 항목이 고유 topicKey를 가짐)
+    // ==================== 1. 설문 및 1,000+ 다이나믹 문제은행 DB ====================
     const SURVEY_DB = {
       leisure: [
         { label: "영화보기", val: "movie", rec: true },
@@ -373,7 +468,6 @@
       ]
     };
 
-    // 2. 1,000+ 다이나믹 질문 생성 엔진 (주제별 세부 변형 템플릿 조합)
     const TOPIC_META = {
       movie: { kor: "영화 관람", eng: "going to the movies", place: "movie theater", item: "movie genre or actor", act: "watch movies" },
       theater: { kor: "공연/연극 관람", eng: "going to the theater", place: "theater or musical venue", item: "play or musical", act: "watch a live play" },
@@ -411,7 +505,6 @@
       student: { kor: "학교/학업", eng: "studying at school", place: "campus or classroom", item: "favorite subject or class", act: "attend classes" }
     };
 
-    // 루틴/장소/묘사 템플릿 (12종)
     const ROUTINE_TEMPLATES = [
       (m) => `You indicated in the survey that you enjoy ${m.eng}. Tell me about your typical routine when you ${m.act}. When, how often, and with whom do you usually do it?`,
       (m) => `I would like to know more about ${m.eng}. Describe your favorite ${m.place} in detail. What does it look like, and why do you prefer going there?`,
@@ -421,7 +514,6 @@
       (m) => `How often do you ${m.act} on weekends compared to weekdays? Tell me about everything you do when you spend time on this activity.`
     ];
 
-    // 과거 경험/사건 템플릿 (12종)
     const EXP_TEMPLATES = [
       (m) => `Tell me about the most memorable experience you had while ${m.eng}. Who were you with, what happened, and why was it so unforgettable?`,
       (m) => `Do you remember the very first time you tried ${m.eng}? When was it, how did you start, and what was your first impression?`,
@@ -431,7 +523,6 @@
       (m) => `Tell me about a time when someone recommended a great ${m.place} or ${m.item} to you. How was the experience when you actually tried it?`
     ];
 
-    // 비교/변화/심화 템플릿 (10종)
     const COMPARE_TEMPLATES = [
       (m) => `How has your interest in ${m.eng} changed from the past to the present? Compare how you used to ${m.act} in the past with how you do it now.`,
       (m) => `What are the biggest changes in ${m.place}s or how people enjoy ${m.eng} nowadays compared to 5 or 10 years ago?`,
@@ -439,7 +530,6 @@
       (m) => `Why is ${m.eng} so popular in your country today? How has technology or social media changed the way people ${m.act}?`
     ];
 
-    // 돌발 주제 풀 (18개 주제 x 3콤보 = 54세트 이상 조합)
     const UNEXPECTED_POOL = [
       { kor: "재활용/환경", eng: "sorting garbage and recycling", place: "recycling area in your neighborhood", item: "recycling rules or eco-friendly habit", act: "recycle household waste" },
       { kor: "대중교통", eng: "using public transportation", place: "subway station or bus stop", item: "bus or subway system", act: "commute using public transit" },
@@ -457,7 +547,6 @@
       { kor: "인터넷/온라인검색", eng: "searching for information online", place: "website or search engine", item: "useful website or portal", act: "use the internet" }
     ];
 
-    // 롤플레이 시나리오 20세트 (11번 질문 -> 12번 대안제시 -> 13번 유사경험)
     const ROLEPLAY_SCENARIOS = [
       {
         title: "공연/영화 티켓 예매",
@@ -494,18 +583,6 @@
         q11: "You want to visit a famous cafe or library with your friend. Call the place and ask three or four questions about parking, opening hours, and Wi-Fi availability.",
         q12: "After coming home from that place, you realized you left your smartphone or bag there. Call the staff, describe the item in detail, explain where you sat, and ask them to check if it's there.",
         q13: "Have you ever lost an important item like a wallet, phone, or umbrella in a public place? Did you get it back? Tell me the whole story."
-      },
-      {
-        title: "고장 난 전자기기 수리",
-        q11: "Your laptop or smartphone is acting up, and you want to get it checked. Call the repair center and ask three or four questions about their location, service hours, and estimated repair costs.",
-        q12: "You borrowed your friend's camera or tablet for a weekend trip, but you accidentally dropped it and cracked the screen. Call your friend, apologize sincerely, explain how it happened, and offer two ways to compensate.",
-        q13: "Tell me about a time when a device or appliance broke down unexpectedly. How did you deal with the inconvenience?"
-      },
-      {
-        title: "의류/쇼핑 교환 및 환불",
-        q11: "You saw a nice jacket on an online store and want to try it on at an offline branch. Call the store and ask three or four questions about stock availability, sizes, and store hours.",
-        q12: "You bought a shirt at the store yesterday, but when you got home, you found a stain on it and the size didn't fit well. Call the store, explain the problem, and ask how you can exchange it.",
-        q13: "Have you ever bought something that you regretted or had to return right away? What was the item, and why did you return it?"
       }
     ];
 
@@ -515,6 +592,439 @@
       "Let's get started. Tell me about yourself, your neighborhood, and how you like to spend your weekends."
     ];
 
+    // ==================== 2. 원어민 TTS 애드온 상태머신 (TTSManager) ====================
+    const TTSManager = {
+      state: 'IDLE', // 'IDLE' | 'PLAYING_ONCE' | 'PLAYING_LOOP' | 'PAUSED'
+      activeTargetId: null, // 현재 재생 중인 타겟 식별자 ('question' | 'model_q_att' | 'user_q_att')
+      queue: [], // [{ pIdx, sIdx, text, paraEl, sentEl, isLastInPara }]
+      currentIndex: 0,
+      rate: 1.0,
+      selectedVoiceURI: '',
+      voices: [],
+      useFallback: false,
+      pauseTimer: null,
+      activeButtons: [],
+
+      init() {
+        if ('speechSynthesis' in window) {
+          const loadVoices = () => {
+            const allVoices = window.speechSynthesis.getVoices();
+            this.voices = allVoices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+            if (this.voices.length === 0) this.voices = allVoices;
+            this.autoSelectBestVoice();
+            this.renderVoiceDropdown();
+          };
+          loadVoices();
+          window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
+      },
+
+      // 보이스 자동 우선 선택: Edge Neural (Aria/Jenny Online Natural) > Chrome Google US English > OS 기본
+      autoSelectBestVoice() {
+        if (!this.voices.length) return;
+        const scoreVoice = (v) => {
+          const name = (v.name || '').toLowerCase();
+          const lang = (v.lang || '').toLowerCase();
+          if (name.includes('aria') && name.includes('natural')) return 100;
+          if (name.includes('jenny') && name.includes('natural')) return 98;
+          if (name.includes('microsoft') && name.includes('natural') && lang.includes('en-us')) return 95;
+          if (name.includes('google us english')) return 90;
+          if (name.includes('google') && lang.includes('en-us')) return 85;
+          if (name.includes('samantha') || name.includes('ava') || name.includes('allison')) return 80;
+          if (lang === 'en-us' || lang === 'en_us') return 70;
+          if (lang.startsWith('en')) return 50;
+          return 10;
+        };
+        const sorted = [...this.voices].sort((a, b) => scoreVoice(b) - scoreVoice(a));
+        if (!this.selectedVoiceURI && sorted[0]) {
+          this.selectedVoiceURI = sorted[0].voiceURI;
+        }
+      },
+
+      renderVoiceDropdown() {
+        const sel = document.getElementById('ttsVoiceSelect');
+        if (!sel) return;
+        if (this.voices.length === 0) {
+          sel.innerHTML = `<option value="">클라우드 호환 음성 사용</option>`;
+          return;
+        }
+        sel.innerHTML = this.voices.map(v => {
+          const isNeural = v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('google');
+          const badge = isNeural ? '★ ' : '';
+          return `<option value="${v.voiceURI}" ${v.voiceURI === this.selectedVoiceURI ? 'selected' : ''}>${badge}${v.name} (${v.lang})</option>`;
+        }).join('');
+      },
+
+      changeVoice(uri) {
+        this.selectedVoiceURI = uri;
+        if (this.state !== 'IDLE') {
+          const idx = this.currentIndex;
+          this.speakCurrentItem(idx);
+        }
+      },
+
+      changeRate(val) {
+        this.rate = parseFloat(val) || 1.0;
+        const lbl = document.getElementById('ttsRateValue');
+        if (lbl) lbl.innerText = `${this.rate.toFixed(2)}x`;
+      },
+
+      toggleFallback() {
+        this.stop();
+        this.useFallback = !this.useFallback;
+        const btn = document.getElementById('ttsFallbackToggleBtn');
+        if (btn) {
+          btn.innerText = this.useFallback ? '☁️ 클라우드: ON' : '☁️ 클라우드: OFF';
+          btn.className = this.useFallback
+            ? 'bg-amber-600 text-white font-bold py-2 rounded-lg transition text-[11px]'
+            : 'bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 rounded-lg transition text-[11px]';
+        }
+      },
+
+      togglePanel(collapse) {
+        const exp = document.getElementById('ttsPanelExpanded');
+        const col = document.getElementById('ttsPanelCollapsedBtn');
+        if (collapse) {
+          exp.classList.add('hidden');
+          col.classList.remove('hidden');
+        } else {
+          exp.classList.remove('hidden');
+          col.classList.add('hidden');
+        }
+      },
+
+      // 텍스트를 문단(Paragraph)과 문장(Sentence) 단위 DOM으로 렌더링하고 반환
+      renderInteractiveScript(containerEl, rawText) {
+        if (!containerEl) return 0;
+        const paragraphs = rawText
+          .split(/\n+/)
+          .map(p => p.trim())
+          .filter(Boolean);
+
+        // 만약 줄바꿈이 없는 긴 문단이면 문장 3개씩 묶어 가독성 있는 문단으로 자동 분리
+        let finalParas = paragraphs;
+        if (paragraphs.length === 1) {
+          const allSents = paragraphs[0].match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [paragraphs[0]];
+          if (allSents.length >= 4) {
+            finalParas = [];
+            for (let i = 0; i < allSents.length; i += 3) {
+              finalParas.push(allSents.slice(i, i + 3).join(' ').trim());
+            }
+          }
+        }
+
+        containerEl.innerHTML = finalParas.map((pText, pIdx) => {
+          const sentences = pText.match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [pText];
+          const sentHtml = sentences.map((sText, sIdx) => 
+            `<span class="tts-sent" data-p="${pIdx}" data-s="${sIdx}">${sText.trim()}</span>`
+          ).join(' ');
+          return `<div class="tts-para" data-p="${pIdx}">${sentHtml}</div>`;
+        }).join('');
+
+        return finalParas.length;
+      },
+
+      buildQueueFromContainer(containerEl) {
+        const queue = [];
+        if (!containerEl) return queue;
+        const paraEls = Array.from(containerEl.querySelectorAll('.tts-para'));
+        paraEls.forEach((paraEl, pIdx) => {
+          const sentEls = Array.from(paraEl.querySelectorAll('.tts-sent'));
+          sentEls.forEach((sentEl, sIdx) => {
+            queue.push({
+              pIdx,
+              sIdx,
+              text: sentEl.innerText.trim(),
+              paraEl,
+              sentEl,
+              isLastInPara: sIdx === sentEls.length - 1
+            });
+          });
+        });
+        return queue;
+      },
+
+      // 질문 듣기 (1회 재생 <-> 정지 토글)
+      playQuestion() {
+        const qContainer = document.getElementById('qTextContainer');
+        const qBtn = document.getElementById('qSpeakBtn');
+        if (this.activeTargetId === 'question' && this.state !== 'IDLE') {
+          this.stop();
+          return;
+        }
+        // 질문이 숨겨져 있어도 하이라이트를 볼 수 있도록 자동 펼침
+        qContainer.classList.remove('hidden');
+        this.startQueue('question', qContainer, 'PLAYING_ONCE', [qBtn], 1);
+      },
+
+      // 질문 카드 우측의 [답변 전체 듣기] 버튼: 최신 모범답안(없으면 내 답변)을 3단 사이클로 재생
+      cycleCardAnswer() {
+        const q = questions[currentQIndex];
+        if (!q) return;
+        const latestIdx = q.attempts.length - 1;
+        if (latestIdx < 0) {
+          const draft = document.getElementById('answerInput').value.trim();
+          if (!draft) {
+            alert('아직 작성된 답변이나 생성된 모범답안이 없습니다. 먼저 답변을 작성하고 채점을 진행해 주세요!');
+            return;
+          }
+          // 임시 답변 재생
+          let tempContainer = document.getElementById('tempDraftTtsContainer');
+          if (!tempContainer) {
+            tempContainer = document.createElement('div');
+            tempContainer.id = 'tempDraftTtsContainer';
+            tempContainer.className = 'hidden';
+            document.body.appendChild(tempContainer);
+          }
+          const pCount = this.renderInteractiveScript(tempContainer, draft);
+          const cardBtn = document.getElementById('cardAnsSpeakBtn');
+          this.cycleAnswerPlayback(`draft_${currentQIndex}`, tempContainer, [cardBtn], pCount);
+          return;
+        }
+
+        // 상세 첨삭의 모범답안이 있으면 펼치고 모범답안 타겟으로 연동
+        const att = q.attempts[latestIdx];
+        if (att.stage2 && att.stage2.al_model_answer) {
+          const wrapper = document.getElementById('stage2Wrapper');
+          if (wrapper && wrapper.classList.contains('hidden')) {
+            toggleStage2View();
+          }
+          const modelContainer = document.getElementById(`modelTtsContainer_${currentQIndex}_${latestIdx}`);
+          const modelBtn = document.getElementById(`modelSpeakBtn_${currentQIndex}_${latestIdx}`);
+          const cardBtn = document.getElementById('cardAnsSpeakBtn');
+          const pCount = modelContainer ? modelContainer.querySelectorAll('.tts-para').length : 1;
+          this.cycleAnswerPlayback(`model_${currentQIndex}_${latestIdx}`, modelContainer, [modelBtn, cardBtn], pCount);
+        } else {
+          const userContainer = document.getElementById(`userTtsContainer_${currentQIndex}_${latestIdx}`);
+          const userBtn = document.getElementById(`userSpeakBtn_${currentQIndex}_${latestIdx}`);
+          const cardBtn = document.getElementById('cardAnsSpeakBtn');
+          const pCount = userContainer ? userContainer.querySelectorAll('.tts-para').length : 1;
+          this.cycleAnswerPlayback(`user_${currentQIndex}_${latestIdx}`, userContainer, [userBtn, cardBtn], pCount);
+        }
+      },
+
+      // [핵심] 답변 전체 듣기 3단계 상태머신: 1회 클릭(1회 재생) -> 2회 클릭(무한 반복) -> 3회 클릭(정지)
+      cycleAnswerPlayback(targetId, containerEl, btnElements, paraCount) {
+        if (!containerEl) return;
+        if (this.activeTargetId !== targetId || this.state === 'IDLE') {
+          this.startQueue(targetId, containerEl, 'PLAYING_ONCE', btnElements, paraCount);
+        } else if (this.state === 'PLAYING_ONCE') {
+          this.state = 'PLAYING_LOOP';
+          this.updateUI();
+        } else {
+          this.stop();
+        }
+      },
+
+      startQueue(targetId, containerEl, initialState, btnElements, paraCount) {
+        this.stop();
+        this.activeTargetId = targetId;
+        this.state = initialState;
+        this.activeButtons = (btnElements || []).filter(Boolean);
+        this.paraCount = paraCount || 1;
+        this.queue = this.buildQueueFromContainer(containerEl);
+        this.currentIndex = 0;
+
+        if (this.queue.length === 0) {
+          this.stop();
+          return;
+        }
+        this.updateUI();
+        this.speakCurrentItem(0);
+      },
+
+      speakCurrentItem(index) {
+        if (this.state === 'IDLE' || index >= this.queue.length) {
+          if (this.state === 'PLAYING_LOOP' && this.queue.length > 0) {
+            // 무한 반복 모드일 경우 0.4초 쉬고 처음부터 다시 재생
+            this.pauseTimer = setTimeout(() => {
+              if (this.state === 'PLAYING_LOOP') {
+                this.currentIndex = 0;
+                this.speakCurrentItem(0);
+              }
+            }, 400);
+            return;
+          }
+          this.stop();
+          return;
+        }
+
+        this.currentIndex = index;
+        const item = this.queue[index];
+        this.highlightItem(item);
+
+        // 클라우드 호환 폴백 모드일 때
+        if (this.useFallback || !('speechSynthesis' in window)) {
+          const player = document.getElementById('fallbackAudioPlayer');
+          player.pause();
+          player.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(item.text)}&le=eng&type=2`;
+          player.playbackRate = this.rate;
+          player.onended = () => this.advanceNext(item);
+          player.onerror = () => this.stop();
+          player.play().catch(() => this.stop());
+          return;
+        }
+
+        const synth = window.speechSynthesis;
+        if (synth.paused) synth.resume();
+        synth.cancel();
+
+        setTimeout(() => {
+          if (this.state === 'IDLE') return;
+          window.currentUtterance = new SpeechSynthesisUtterance(item.text);
+          window.currentUtterance.lang = 'en-US';
+          window.currentUtterance.rate = this.rate;
+
+          const matchedVoice = this.voices.find(v => v.voiceURI === this.selectedVoiceURI);
+          if (matchedVoice) window.currentUtterance.voice = matchedVoice;
+
+          window.currentUtterance.onend = () => {
+            if (this.state === 'IDLE' || this.state === 'PAUSED') return;
+            this.advanceNext(item);
+          };
+
+          window.currentUtterance.onerror = (e) => {
+            if (e.error === 'canceled' || e.error === 'interrupted') return;
+            // 내장 음성 에러 시 클라우드 폴백으로 자동 전환
+            this.useFallback = true;
+            this.speakCurrentItem(index);
+          };
+
+          synth.speak(window.currentUtterance);
+        }, 40);
+      },
+
+      // 문단 사이에는 숨 고르는 쉼(0.4초 = 400ms) 삽입
+      advanceNext(currentItem) {
+        const delay = currentItem.isLastInPara ? 400 : 60;
+        this.pauseTimer = setTimeout(() => {
+          if (this.state === 'PLAYING_ONCE' || this.state === 'PLAYING_LOOP') {
+            this.speakCurrentItem(this.currentIndex + 1);
+          }
+        }, delay);
+      },
+
+      highlightItem(item) {
+        this.clearHighlights();
+        if (item.paraEl) {
+          item.paraEl.classList.add('tts-active-para');
+        }
+        if (item.sentEl) {
+          item.sentEl.classList.add('tts-active-sent');
+          item.sentEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      },
+
+      clearHighlights() {
+        document.querySelectorAll('.tts-active-para').forEach(el => el.classList.remove('tts-active-para'));
+        document.querySelectorAll('.tts-active-sent').forEach(el => el.classList.remove('tts-active-sent'));
+      },
+
+      togglePause() {
+        if (this.state === 'IDLE') return;
+        if (this.useFallback) {
+          const player = document.getElementById('fallbackAudioPlayer');
+          if (player.paused) {
+            player.play();
+            this.state = this.prevLoopState || 'PLAYING_ONCE';
+          } else {
+            this.prevLoopState = this.state;
+            player.pause();
+            this.state = 'PAUSED';
+          }
+          this.updateUI();
+          return;
+        }
+
+        const synth = window.speechSynthesis;
+        if (this.state === 'PAUSED') {
+          this.state = this.prevLoopState || 'PLAYING_ONCE';
+          synth.resume();
+          // 크롬에서 resume이 먹통일 경우 현재 문장 재발화
+          if (!synth.speaking) this.speakCurrentItem(this.currentIndex);
+        } else {
+          this.prevLoopState = this.state;
+          this.state = 'PAUSED';
+          clearTimeout(this.pauseTimer);
+          synth.pause();
+        }
+        this.updateUI();
+      },
+
+      stop() {
+        clearTimeout(this.pauseTimer);
+        this.state = 'IDLE';
+        this.activeTargetId = null;
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        const player = document.getElementById('fallbackAudioPlayer');
+        if (player) player.pause();
+        this.clearHighlights();
+        this.updateUI();
+        this.activeButtons = [];
+      },
+
+      updateUI() {
+        const badge = document.getElementById('ttsStateBadge');
+        const pauseBtn = document.getElementById('ttsPauseResumeBtn');
+        const qBtn = document.getElementById('qSpeakBtn');
+
+        if (badge) {
+          if (this.state === 'IDLE') {
+            badge.innerText = '대기 중';
+            badge.className = 'bg-slate-700 text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold';
+          } else if (this.state === 'PLAYING_ONCE') {
+            badge.innerText = '▶ 1회 재생 중';
+            badge.className = 'bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse';
+          } else if (this.state === 'PLAYING_LOOP') {
+            badge.innerText = '🔁 무한 반복 중';
+            badge.className = 'bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse';
+          } else if (this.state === 'PAUSED') {
+            badge.innerText = '⏸ 일시정지됨';
+            badge.className = 'bg-rose-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold';
+          }
+        }
+
+        if (pauseBtn) {
+          pauseBtn.innerText = this.state === 'PAUSED' ? '▶ 다시재생' : '⏸ 일시정지';
+        }
+
+        // 질문 듣기 버튼 복원
+        if (qBtn) {
+          qBtn.innerText = (this.activeTargetId === 'question' && this.state !== 'IDLE')
+            ? '⏹ 질문 정지'
+            : '🔊 질문 듣기';
+        }
+
+        // 모든 답변 전체 듣기 버튼 기본 라벨 복구 후 활성 버튼만 상태 표시
+        document.querySelectorAll('[data-tts-default-label]').forEach(btn => {
+          btn.innerText = btn.getAttribute('data-tts-default-label');
+          btn.classList.remove('ring-2', 'ring-amber-300', 'bg-amber-600');
+        });
+
+        const cardAnsBtn = document.getElementById('cardAnsSpeakBtn');
+        if (cardAnsBtn && (!this.activeButtons.includes(cardAnsBtn) || this.state === 'IDLE')) {
+          const pCnt = cardAnsBtn.getAttribute('data-para-count') || '';
+          cardAnsBtn.innerText = pCnt ? `🔊 답변 전체 듣기 (${pCnt}문단)` : '🔊 답변 전체 듣기';
+        }
+
+        if (this.state !== 'IDLE') {
+          this.activeButtons.forEach(btn => {
+            if (!btn || btn.id === 'qSpeakBtn') return;
+            const pCnt = btn.getAttribute('data-para-count') || this.paraCount || 1;
+            if (this.state === 'PLAYING_ONCE') {
+              btn.innerText = `🔊 1회 재생 중 (${pCnt}문단) · 한 번 더 누르면 무한반복`;
+            } else if (this.state === 'PLAYING_LOOP') {
+              btn.innerText = `🔁 무한 반복 중 (${pCnt}문단) · 한 번 더 누르면 정지`;
+              btn.classList.add('ring-2', 'ring-amber-300');
+            } else if (this.state === 'PAUSED') {
+              btn.innerText = `⏸ 일시정지됨 (${pCnt}문단)`;
+            }
+          });
+        }
+      }
+    };
+
+    // ==================== 3. 앱 상태 및 핵심 로직 ====================
     let questions = [];
     let currentQIndex = 0;
     let recognition = null;
@@ -525,9 +1035,6 @@
     let elapsedSecondsCount = 0;
     let targetGrade = "AL";
 
-    window.currentUtterance = null;
-    let useCloudFallbackTTS = false;
-
     let myBookmarks = JSON.parse(localStorage.getItem('MIRI_BOOKMARKS') || '[]');
     const apiCache = {};
 
@@ -535,16 +1042,11 @@
       renderSurveyCheckboxes();
       initSpeechRecognition();
       updateCount();
+      TTSManager.init();
       const savedKey = localStorage.getItem('GEMINI_API_KEY');
       if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
-      
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.getVoices();
-        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-      }
     };
 
-    // 배열 랜덤 셔플 유틸리티
     function shuffleArray(arr) {
       const copy = [...arr];
       for (let i = copy.length - 1; i > 0; i--) {
@@ -558,7 +1060,6 @@
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    // [핵심] 설문 연동 1,000+ 다이나믹 15문항 생성기
     function buildDynamic15Questions() {
       const checkedBoxes = Array.from(document.querySelectorAll('input[name="sv_item"]:checked')).map(cb => cb.value);
       const jobVal = document.querySelector('input[name="q1_job"]:checked')?.value;
@@ -570,7 +1071,6 @@
       if (jobVal === 'work') userPoolKeys.push('work');
       if (stuVal === 'student') userPoolKeys.push('student');
 
-      // 만약 설문 체크 안 하고 바로 시작했을 경우 기본 꿀설문 키 풀 사용
       if (userPoolKeys.length < 3) {
         userPoolKeys = ['movie', 'park', 'cafe', 'music', 'cooking', 'walking', 'staycation', 'domestic_travel', 'home'];
       }
@@ -580,42 +1080,32 @@
       const topicB = TOPIC_META[shuffledTopics[1]] || TOPIC_META.music;
       const topicC = TOPIC_META[shuffledTopics[2]] || TOPIC_META.cooking;
 
-      // 돌발 주제 1개 랜덤 픽
       const unexpectedMeta = pickRandom(UNEXPECTED_POOL);
-      // 롤플레이 시나리오 1세트 랜덤 픽
       const rp = pickRandom(ROLEPLAY_SCENARIOS);
 
       const rTplA = shuffleArray(ROUTINE_TEMPLATES);
       const eTplA = shuffleArray(EXP_TEMPLATES);
       const cTplA = shuffleArray(COMPARE_TEMPLATES);
-
       const rTplB = shuffleArray(ROUTINE_TEMPLATES);
       const eTplB = shuffleArray(EXP_TEMPLATES);
-
       const rTplU = shuffleArray(ROUTINE_TEMPLATES);
       const eTplU = shuffleArray(EXP_TEMPLATES);
       const cTplU = shuffleArray(COMPARE_TEMPLATES);
 
       const generated = [
-        // Q1: 자기소개
         { category: "Q1. 자기소개 (Background)", text: pickRandom(INTRO_VARIATIONS), subType: "intro" },
-        // Q2~Q4: 설문 주제 A 3콤보
         { category: `Q2. 설문 콤보1 - ${topicA.kor} (루틴/묘사)`, text: rTplA[0](topicA), subType: "routine" },
         { category: `Q3. 설문 콤보1 - ${topicA.kor} (장소/세부특징)`, text: rTplA[1](topicA), subType: "routine" },
         { category: `Q4. 설문 콤보1 - ${topicA.kor} (과거 경험)`, text: eTplA[0](topicA), subType: "experience" },
-        // Q5~Q7: 설문 주제 B 3콤보
         { category: `Q5. 설문 콤보2 - ${topicB.kor} (습관/선호)`, text: rTplB[0](topicB), subType: "routine" },
         { category: `Q6. 설문 콤보2 - ${topicB.kor} (기억에 남는 일)`, text: eTplB[0](topicB), subType: "experience" },
         { category: `Q7. 설문 콤보2 - ${topicB.kor} (과거/현재 비교)`, text: cTplA[0](topicB), subType: "compare" },
-        // Q8~Q10: 돌발 주제 3콤보
         { category: `Q8. 돌발 콤보 - ${unexpectedMeta.kor} (일반 묘사)`, text: rTplU[0](unexpectedMeta), subType: "routine" },
         { category: `Q9. 돌발 콤보 - ${unexpectedMeta.kor} (문제/경험담)`, text: eTplU[0](unexpectedMeta), subType: "experience" },
         { category: `Q10. 돌발 콤보 - ${unexpectedMeta.kor} (트렌드/변화)`, text: cTplU[0](unexpectedMeta), subType: "compare" },
-        // Q11~Q13: 롤플레이 3콤보
         { category: `Q11. 롤플레이 - ${rp.title} (질문하기)`, text: rp.q11, subType: "roleplay" },
         { category: `Q12. 롤플레이 - ${rp.title} (대안제시/해결)`, text: rp.q12, subType: "roleplay" },
         { category: `Q13. 롤플레이 연계 - ${rp.title} (실제 경험)`, text: rp.q13, subType: "experience" },
-        // Q14~Q15: 설문 주제 C 심화 2콤보
         { category: `Q14. 심화 콤보 - ${topicC.kor} (비교/대조)`, text: cTplA[1](topicC), subType: "compare" },
         { category: `Q15. 심화 콤보 - ${topicC.kor} (사회이슈/이유)`, text: cTplA[2](topicC), subType: "roleplay" }
       ];
@@ -649,10 +1139,7 @@
 
     function addBookmark(type, title, text) {
       const exists = myBookmarks.some(b => b.text === text && b.title === title);
-      if (exists) {
-        alert('이미 마이페이지에 저장된 스크립트입니다!');
-        return;
-      }
+      if (exists) return alert('이미 마이페이지에 저장된 스크립트입니다!');
       myBookmarks.push({ id: Date.now(), type, title, text });
       localStorage.setItem('MIRI_BOOKMARKS', JSON.stringify(myBookmarks));
       alert('📌 마이페이지 보관함에 성공적으로 저장되었습니다!');
@@ -687,7 +1174,7 @@
             </div>
           </div>
           <div class="font-bold text-slate-800 text-xs">${b.title}</div>
-          <textarea id="edit_bm_${b.id}" rows="3" class="w-full border rounded-lg p-2.5 text-xs bg-white leading-relaxed focus:outline-indigo-500">${b.text}</textarea>
+          <textarea id="edit_bm_${b.id}" rows="4" class="w-full border rounded-lg p-2.5 text-xs bg-white leading-relaxed focus:outline-indigo-500">${b.text}</textarea>
         </div>
       `).join('');
     }
@@ -705,15 +1192,10 @@
 
     function downloadAllBookmarksTxt() {
       if (myBookmarks.length === 0) return alert('다운로드할 스크립트가 없습니다.');
-      
       let content = "=== 미리오픽 (MiriOPIc) 나만의 스크립트 보관함 ===\n\n";
       myBookmarks.forEach((b, idx) => {
-        content += `[${idx + 1}] 분류: ${b.type}\n`;
-        content += `질문/주제: ${b.title}\n`;
-        content += `내용:\n${b.text}\n`;
-        content += "--------------------------------------------------\n\n";
+        content += `[${idx + 1}] 분류: ${b.type}\n질문/주제: ${b.title}\n내용:\n${b.text}\n--------------------------------------------------\n\n`;
       });
-
       const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -783,10 +1265,8 @@
     function applyPopularPreset() {
       const jobRadio = document.querySelector('input[name="q1_job"][value="none"]');
       if (jobRadio) { jobRadio.checked = true; handleJobChange(); }
-
       const stuRadio = document.querySelector('input[name="q2_stu"][value="none"]');
       if (stuRadio) { stuRadio.checked = true; handleStuChange(); }
-
       const homeRadio = document.querySelector('input[name="q3_home"][value="home"]');
       if (homeRadio) homeRadio.checked = true;
 
@@ -817,17 +1297,9 @@
         : "text-xs font-extrabold bg-rose-500 text-white px-3 py-1 rounded-full";
     }
 
-    function stopAllAudio() {
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-      const player = document.getElementById('fallbackAudioPlayer');
-      if (player) player.pause();
-      const btn = document.getElementById('evaPlayBtn');
-      if (btn) btn.innerText = '🔊 문제 듣기 (Eva)';
-    }
-
     function resetToSurvey() {
       if (isRecording) toggleRecording();
-      stopAllAudio();
+      TTSManager.stop();
       document.getElementById('testSection').classList.add('hidden');
       document.getElementById('backToSurveyBtn').classList.add('hidden');
       document.getElementById('reShuffleBtn').classList.add('hidden');
@@ -837,7 +1309,6 @@
     function generateFastMockTest() {
       targetGrade = document.querySelector('input[name="target_grade"]:checked')?.value || 'AL';
       document.getElementById('targetGradeBadge').innerText = `목표 등급: ${targetGrade}`;
-
       questions = buildDynamic15Questions();
 
       document.getElementById('surveySection').classList.add('hidden');
@@ -847,9 +1318,9 @@
       renderQuestion(0);
     }
 
-    // 시험 화면에서 즉시 새 15문항 세트로 다시 뽑기
     function shuffleNewTest() {
       if (!confirm('현재 설문 설정 그대로 새로운 15문항 세트를 랜덤 재출제하시겠습니까?')) return;
+      TTSManager.stop();
       questions = buildDynamic15Questions();
       renderQuestion(0);
     }
@@ -874,7 +1345,7 @@
 
     function renderQuestion(index) {
       if (isRecording) toggleRecording();
-      stopAllAudio();
+      TTSManager.stop();
       resetTimer();
       currentQIndex = index;
       const q = questions[index];
@@ -883,9 +1354,9 @@
       document.getElementById('qCategory').innerText = q.category;
       updateTimerBadgeLabel(0);
 
-      const qTextEl = document.getElementById('qText');
-      qTextEl.innerText = q.text;
-      qTextEl.classList.add('hidden');
+      const qTextContainer = document.getElementById('qTextContainer');
+      TTSManager.renderInteractiveScript(qTextContainer, q.text);
+      qTextContainer.classList.add('hidden');
 
       const latestTranscript = q.attempts.length > 0 ? q.attempts[q.attempts.length - 1].transcript : '';
       document.getElementById('answerInput').value = latestTranscript;
@@ -893,92 +1364,14 @@
       renderAttempts(q.attempts.length - 1);
     }
 
-    function toggleScript() { document.getElementById('qText').classList.toggle('hidden'); }
-
-    function toggleTtsMode() {
-      stopAllAudio();
-      useCloudFallbackTTS = !useCloudFallbackTTS;
-      const btn = document.getElementById('ttsModeBtn');
-      btn.innerText = useCloudFallbackTTS ? '⚙️ 음성모드: 호환(비상용)' : '⚙️ 음성모드: 기본';
-      btn.className = useCloudFallbackTTS 
-        ? 'bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1.5 rounded-lg text-xs font-bold'
-        : 'bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-semibold hover:bg-slate-300';
-    }
-    
-    function playQuestionTTS() {
-      const btn = document.getElementById('evaPlayBtn');
-      speakUniversalTTS(questions[currentQIndex].text, btn, '🔊 문제 듣기 (Eva)');
+    function toggleScript() {
+      document.getElementById('qTextContainer').classList.toggle('hidden');
     }
 
-    function speakModelAnswer(qIdx, attIdx, btnEl) {
-      const targetAttempt = questions[qIdx]?.attempts[attIdx];
-      const textToSpeak = targetAttempt?.stage2?.al_model_answer;
-      if (!textToSpeak) return alert('모범 답안이 아직 생성 중입니다. 잠시만 기다려주세요!');
-      speakUniversalTTS(textToSpeak, btnEl, '🔊 발음 듣기');
+    function clearAnswer() {
+      document.getElementById('answerInput').value = '';
+      resetTimer();
     }
-
-    function speakUniversalTTS(text, btnEl, defaultBtnText) {
-      if (useCloudFallbackTTS || !('speechSynthesis' in window)) {
-        playFallbackStream(text, btnEl, defaultBtnText);
-        return;
-      }
-
-      const synth = window.speechSynthesis;
-      if (synth.paused) synth.resume();
-
-      if (synth.speaking || synth.pending) {
-        synth.cancel();
-        setTimeout(() => executeNativeSpeak(text, btnEl, defaultBtnText), 120);
-      } else {
-        executeNativeSpeak(text, btnEl, defaultBtnText);
-      }
-    }
-
-    function executeNativeSpeak(text, btnEl, defaultBtnText) {
-      const synth = window.speechSynthesis;
-
-      window.currentUtterance = new SpeechSynthesisUtterance(text);
-      window.currentUtterance.lang = 'en-US';
-      window.currentUtterance.rate = 0.95;
-      window.currentUtterance.volume = 1.0;
-
-      const voices = synth.getVoices();
-      if (voices && voices.length > 0) {
-        const enVoice = voices.find(v => v.lang && (v.lang.includes('en-US') || v.lang.includes('en_US'))) 
-                     || voices.find(v => v.lang && v.lang.startsWith('en'));
-        if (enVoice) window.currentUtterance.voice = enVoice;
-      }
-
-      window.currentUtterance.onstart = () => { if (btnEl) btnEl.innerText = '🔊 재생 중...'; };
-      window.currentUtterance.onend = () => { if (btnEl) btnEl.innerText = defaultBtnText; };
-      window.currentUtterance.onerror = (e) => {
-        if (btnEl) btnEl.innerText = defaultBtnText;
-        if (e.error !== 'canceled' && e.error !== 'interrupted') {
-          playFallbackStream(text, btnEl, defaultBtnText);
-        }
-      };
-
-      synth.speak(window.currentUtterance);
-    }
-
-    function playFallbackStream(text, btnEl, defaultBtnText) {
-      const player = document.getElementById('fallbackAudioPlayer');
-      if (!player) return;
-      player.pause();
-      player.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=eng&type=2`;
-      if (btnEl) btnEl.innerText = '🔊 재생 중...';
-      player.onended = () => { if (btnEl) btnEl.innerText = defaultBtnText; };
-      player.onerror = () => {
-        if (btnEl) btnEl.innerText = defaultBtnText;
-        alert('음성 재생에 실패했습니다. 기기 볼륨이나 브라우저 음소거 탭을 확인해 주세요.');
-      };
-      player.play().catch(err => {
-        if (btnEl) btnEl.innerText = defaultBtnText;
-        console.error(err);
-      });
-    }
-
-    function clearAnswer() { document.getElementById('answerInput').value = ''; resetTimer(); }
     
     function startTimer() {
       secondsElapsed = 0;
@@ -1060,7 +1453,7 @@
       const msg = document.getElementById('statusMsg');
 
       if (!isRecording) {
-        stopAllAudio();
+        TTSManager.stop();
         isRecording = true;
         recognition.start();
         startTimer();
@@ -1078,6 +1471,7 @@
     }
 
     function addNewAttempt() {
+      TTSManager.stop();
       document.getElementById('answerInput').value = '';
       resetTimer();
       alert('새로운 회차 녹음을 시작합니다! 첫 문장에 MP(결론)를 넣고 답변해 보세요.');
@@ -1098,14 +1492,14 @@
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 45000);
 
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               contents: [{ parts: [{ text: promptText }] }],
               generationConfig: { 
                 responseMimeType: "application/json", 
-                temperature: 0.2,
+                temperature: 0.25,
                 maxOutputTokens: maxTokens,
                 thinkingConfig: { thinkingBudget: 0 }
               }
@@ -1147,7 +1541,7 @@
       const words = cleanText ? cleanText.split(/\s+/) : [];
       const wordCount = words.length;
       
-      const durationMin = secondsElapsed > 0 ? secondsElapsed / 60 : 0.5;
+      const durationMin = secondsElapsed > 0 ? secondsElapsed / 60 : Math.max(0.4, wordCount / 130);
       const wpm = Math.round(wordCount / durationMin);
 
       const fillerRegex = /\b(umm?|ah+|you know|like|basically|actually|well|erm|uhh?)\b/gi;
@@ -1159,33 +1553,38 @@
 
       const qWords = questionText.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).filter(w => w.length > 3);
       const matchedKeywords = qWords.filter(qw => cleanText.toLowerCase().includes(qw));
-      const keywordIncluded = qWords.length > 0 ? Math.round((matchedKeywords.length / qWords.length) * 100) >= 40 : true;
+      const keywordIncluded = qWords.length > 0 ? Math.round((matchedKeywords.length / qWords.length) * 100) >= 35 : true;
 
       return { wordCount, wpm, fillerCount, ttr, keywordIncluded };
     }
 
+    // [1단 + 2단 비동기 채점: 강점/약점 & ACTFL 4대 영역 & 중고교 어휘 AL 모범답안]
     async function evaluateAnswer() {
       const transcript = document.getElementById('answerInput').value.trim();
       if (!transcript) return alert('먼저 답변을 말씀하시거나 입력란에 적어주세요!');
       if (isRecording) toggleRecording();
+      TTSManager.stop();
 
       showLoading();
 
       const q = questions[currentQIndex];
       const metrics = computeDeterministicMetrics(transcript, q.text);
 
-      const promptStage1 = `ACTFL OPIc evaluator. Target: '${targetGrade}'. Check if answer starts with MP (Main Point) in the first sentence.
+      const promptStage1 = `ACTFL OPIc evaluator. User's target grade is '${targetGrade}'.
+Evaluate if the user's answer starts with a clear MP (Main Point / direct conclusion) in the very first sentence.
 Question: ${q.text}
-Answer: ${transcript}
+User Answer: ${transcript}
 
-Return ONLY valid JSON format for Stage 1:
+Return ONLY valid JSON for Stage 1:
 {
   "estimated_grade": "IM2, IM3, IH, or AL",
-  "overall_comment": "Korean 3 lines evaluating MP first-sentence structure and overall score reason."
+  "overall_comment": "Korean 2-3 sentences evaluating the first-sentence MP structure and overall performance.",
+  "strengths": ["구체적인 강점 1 (한국어)", "구체적인 강점 2 (한국어)"],
+  "weaknesses": ["보완해야 할 약점 1 (한국어)", "보완해야 할 약점 2 (한국어)"]
 }`;
 
       try {
-        const stage1Json = await callGeminiRetry(promptStage1, 400);
+        const stage1Json = await callGeminiRetry(promptStage1, 600);
 
         const newAttempt = {
           attemptNum: q.attempts.length + 1,
@@ -1216,15 +1615,26 @@ Return ONLY valid JSON format for Stage 1:
     }
 
     async function fetchStage2Async(qObj, attemptIdx, transcript) {
-      const promptStage2 = `ACTFL OPIc grammar & model answer generator.
+      const promptStage2 = `ACTFL OPIc coach.
 Question: ${qObj.text}
-Answer: ${transcript}
+User Answer: ${transcript}
 
-Return ONLY valid JSON for Stage 2 details:
+Requirements for "al_model_answer":
+1. MUST achieve ACTFL 'AL (Advanced Low)' level through logical flow, vivid details, natural connectors, and rich storytelling.
+2. VOCABULARY RULE: Use ONLY easy, natural middle/high-school level English words and everyday phrasal verbs. NEVER use stiff, academic, or overly difficult C1/C2 vocabulary.
+3. STRUCTURE RULE: MUST place the Main Point (MP / direct conclusion) in the VERY FIRST sentence. Organize into 3 clear paragraphs separated by "\\n\\n" (Paragraph 1: MP & overview, Paragraph 2: specific details/episode, Paragraph 3: feelings & wrap-up).
+
+Return ONLY valid JSON:
 {
-  "grammar_corrections": ["문법 오류 교정 팁 1", "문법 오류 교정 팁 2"],
-  "al_upgrade_points": ["첫 문장 MP 강화 팁", "디테일 확장 팁"],
-  "al_model_answer": "English model script with clear MP in first sentence."
+  "actfl_evaluation": {
+    "functions_tasks": { "score": "상, 중, or 하", "feedback": "과제 수행력 및 시제 적합성 한국어 피드백" },
+    "context_content": { "score": "상, 중, or 하", "feedback": "맥락 및 구체적 디테일 한국어 피드백" },
+    "accuracy": { "score": "상, 중, or 하", "feedback": "문법 정확성 및 의사소통 이해도 한국어 피드백" },
+    "text_type": { "score": "상, 중, or 하", "feedback": "첫 문장 MP 두괄식 구조 및 문단 구성력 한국어 피드백" }
+  },
+  "grammar_corrections": ["원문 표현 -> 교정 표현 : 이유 설명 1", "원문 표현 -> 교정 표현 : 이유 설명 2"],
+  "al_upgrade_points": ["첫 문장 MP 강화 및 스토리텔링 업그레이드 팁 1", "업그레이드 팁 2"],
+  "al_model_answer": "Paragraph 1 (Starts with MP)...\\n\\nParagraph 2 (Details)...\\n\\nParagraph 3 (Wrap-up)..."
 }`;
 
       try {
@@ -1233,7 +1643,9 @@ Return ONLY valid JSON for Stage 2 details:
         qObj.attempts[attemptIdx].isStage2Loading = false;
         
         if (currentQIndex === questions.indexOf(qObj)) {
+          const wasOpen = !document.getElementById('stage2Wrapper')?.classList.contains('hidden');
           renderAttempts(attemptIdx);
+          if (wasOpen) toggleStage2View(true);
         }
       } catch (e) {
         if (qObj.attempts[attemptIdx]) {
@@ -1274,48 +1686,100 @@ Return ONLY valid JSON for Stage 2 details:
         `;
       }
 
+      const strengthsList = (s1.strengths || []).map(st => `<li>${st}</li>`).join('');
+      const weaknessesList = (s1.weaknesses || []).map(wk => `<li>${wk}</li>`).join('');
+
       let stage2Html = '';
       if (item.stage2) {
-        const safeModelAnswer = item.stage2.al_model_answer.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const s2 = item.stage2;
+        const actfl = s2.actfl_evaluation || {
+          functions_tasks: { score: "중", feedback: "-" },
+          context_content: { score: "중", feedback: "-" },
+          accuracy: { score: "중", feedback: "-" },
+          text_type: { score: "중", feedback: "-" }
+        };
+        const safeModelAnswer = (s2.al_model_answer || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/`/g, '\\`');
+
         stage2Html = `
           <div id="stage2Details" class="space-y-4 pt-4 border-t border-slate-200 animate-fadeIn">
+            
+            <!-- ACTFL 4대 핵심 영역 상세 진단 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div class="border border-slate-200 p-4 rounded-xl bg-white shadow-sm">
+                <div class="font-bold text-slate-800 mb-1.5 flex justify-between">
+                  <span>🎯 1. 과제 수행력 (Functions & Tasks)</span>
+                  <span class="text-indigo-600 font-extrabold">${actfl.functions_tasks?.score || '중'}</span>
+                </div>
+                <p class="text-slate-600 text-xs leading-relaxed">${actfl.functions_tasks?.feedback || ''}</p>
+              </div>
+              <div class="border border-slate-200 p-4 rounded-xl bg-white shadow-sm">
+                <div class="font-bold text-slate-800 mb-1.5 flex justify-between">
+                  <span>💡 2. 맥락 및 내용 (Context & Content)</span>
+                  <span class="text-indigo-600 font-extrabold">${actfl.context_content?.score || '중'}</span>
+                </div>
+                <p class="text-slate-600 text-xs leading-relaxed">${actfl.context_content?.feedback || ''}</p>
+              </div>
+              <div class="border border-slate-200 p-4 rounded-xl bg-white shadow-sm">
+                <div class="font-bold text-slate-800 mb-1.5 flex justify-between">
+                  <span>🔍 3. 정확성 및 이해도 (Accuracy)</span>
+                  <span class="text-indigo-600 font-extrabold">${actfl.accuracy?.score || '중'}</span>
+                </div>
+                <p class="text-slate-600 text-xs leading-relaxed">${actfl.accuracy?.feedback || ''}</p>
+              </div>
+              <div class="border border-slate-200 p-4 rounded-xl bg-white shadow-sm">
+                <div class="font-bold text-slate-800 mb-1.5 flex justify-between">
+                  <span>🧱 4. MP 두괄식 & 텍스트 유형 (Text Type)</span>
+                  <span class="text-indigo-600 font-extrabold">${actfl.text_type?.score || '중'}</span>
+                </div>
+                <p class="text-slate-600 text-xs leading-relaxed">${actfl.text_type?.feedback || ''}</p>
+              </div>
+            </div>
+
+            <!-- 문법 교정 및 AL 업그레이드 포인트 -->
             <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
-              <div class="font-bold text-amber-900 text-sm mb-2">🔍 문법 교정 및 AL 업그레이드 포인트</div>
+              <div class="font-bold text-amber-900 text-sm mb-2">🚀 문법 교정 및 AL 점프 업그레이드 포인트</div>
               <ul class="list-disc pl-5 space-y-1 text-amber-800 text-xs leading-relaxed">
-                ${(item.stage2.grammar_corrections || []).map(pt => `<li>[문법] ${pt}</li>`).join('')}
-                ${(item.stage2.al_upgrade_points || []).map(pt => `<li>[전략] ${pt}</li>`).join('')}
+                ${(s2.grammar_corrections || []).map(pt => `<li><b>[문법 교정]</b> ${pt}</li>`).join('')}
+                ${(s2.al_upgrade_points || []).map(pt => `<li><b>[MP/스토리 전략]</b> ${pt}</li>`).join('')}
               </ul>
             </div>
 
+            <!-- 중-고교 수준 쉬운 어휘 + 첫 문장 MP 선제시 AL 모범답안 -->
             <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-2">
               <div class="flex justify-between items-center flex-wrap gap-2">
-                <div class="font-bold text-emerald-900 text-sm">✨ 첫 문장 MP 선제시 모범 스크립트</div>
-                <div class="flex gap-2">
-                  <button onclick="addBookmark('모범답안', '${q.category.replace(/'/g, "")}', \`${safeModelAnswer}\`)" class="text-xs bg-amber-500 text-white px-2.5 py-1 rounded hover:bg-amber-400 font-bold shadow-sm">
+                <div>
+                  <div class="font-bold text-emerald-900 text-sm">✨ 첫 문장 MP 선제시 AL 모범 스크립트 (중·고교 핵심 어휘 버전)</div>
+                  <p class="text-[11px] text-emerald-700">1번 클릭: 1회 재생 | 2번 클릭: 무한 반복 | 3번 클릭: 정지 (문단 사이 0.4초 호흡)</p>
+                </div>
+                <div class="flex gap-2 no-print">
+                  <button onclick="addBookmark('모범답안', '${q.category.replace(/'/g, "")}', \`${safeModelAnswer}\`)" class="text-xs bg-amber-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-amber-400 font-bold shadow-sm">
                     📌 북마크에 저장
                   </button>
-                  <button onclick="speakModelAnswer(${currentQIndex}, ${attemptIdx}, this)" class="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded hover:bg-emerald-500 font-semibold">
-                    🔊 발음 듣기
+                  <button id="modelSpeakBtn_${currentQIndex}_${attemptIdx}" 
+                          onclick="triggerModelSpeak(${currentQIndex}, ${attemptIdx})" 
+                          class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-500 font-bold shadow-sm transition">
+                    🔊 답변 전체 듣기
                   </button>
                 </div>
               </div>
-              <p class="text-emerald-900 text-xs leading-relaxed italic">"${item.stage2.al_model_answer}"</p>
+              <div id="modelTtsContainer_${currentQIndex}_${attemptIdx}" class="text-emerald-950 text-xs leading-relaxed bg-white/80 p-3 rounded-lg border border-emerald-200"></div>
             </div>
           </div>
         `;
       } else if (item.isStage2Loading) {
         stage2Html = `
           <div id="stage2Details" class="pt-4 border-t border-slate-200 text-center text-xs text-indigo-600 font-semibold animate-pulse">
-            ⏳ 백그라운드에서 상세 첨삭(문법 교정 및 모범 답안)을 생성 중입니다... 잠시만 기다려 주세요!
+            ⏳ 백그라운드에서 ACTFL 4대 영역 평가와 중·고교 어휘 기반 AL 모범답안을 생성 중입니다... 잠시만 기다려 주세요!
           </div>
         `;
       }
 
-      const safeTranscript = item.transcript.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+      const safeTranscript = item.transcript.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/`/g, '\\`');
 
       document.getElementById('feedbackContent').innerHTML = `
         ${comparisonHtml}
         
+        <!-- [1단] 점수 + 총평 코멘트 -->
         <div class="bg-slate-900 text-white p-5 rounded-xl flex items-center justify-between gap-4">
           <div class="space-y-1">
             <span class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">#${item.attemptNum}차 시도 [1단 핵심 리포트] (목표: ${targetGrade})</span>
@@ -1327,6 +1791,23 @@ Return ONLY valid JSON for Stage 2 details:
           </div>
         </div>
 
+        <!-- [강점 / 약점 박스] -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div class="bg-emerald-50/70 border border-emerald-200 p-4 rounded-xl space-y-1.5">
+            <div class="font-extrabold text-emerald-900 text-sm">👍 강점 (Strengths)</div>
+            <ul class="list-disc pl-4 space-y-1 text-emerald-800 leading-relaxed">
+              ${strengthsList || '<li>첫 문장 답변 시도 및 주제 연관성 양호</li>'}
+            </ul>
+          </div>
+          <div class="bg-rose-50/70 border border-rose-200 p-4 rounded-xl space-y-1.5">
+            <div class="font-extrabold text-rose-900 text-sm">👎 약점 및 보완점 (Weaknesses)</div>
+            <ul class="list-disc pl-4 space-y-1 text-rose-800 leading-relaxed">
+              ${weaknessesList || '<li>문단 확장 및 세부 시제 일관성 보완 필요</li>'}
+            </ul>
+          </div>
+        </div>
+
+        <!-- 0초 Deterministic 지표 카드 -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-2 text-center text-xs">
           <div class="bg-slate-50 border p-2.5 rounded-xl">
             <div class="text-slate-400">답변 길이</div>
@@ -1350,36 +1831,90 @@ Return ONLY valid JSON for Stage 2 details:
           </div>
         </div>
 
-        <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-xs text-slate-600 flex flex-col gap-2">
-          <div class="flex justify-between items-center">
+        <!-- 내 답변 스크립트 (하이라이트 TTS 재생 지원) -->
+        <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-xs text-slate-700 flex flex-col gap-2">
+          <div class="flex justify-between items-center flex-wrap gap-2">
             <span class="font-bold text-slate-800">🗣 내 답변 스크립트 (#${item.attemptNum}차):</span>
-            <button onclick="addBookmark('내 답변', '${q.category.replace(/'/g, "")} (#${item.attemptNum}차)', \`${safeTranscript}\`)" class="text-xs bg-amber-500 text-white px-2.5 py-1 rounded hover:bg-amber-400 font-bold shadow-sm">
-              📌 내 답변 북마크에 저장
-            </button>
+            <div class="flex gap-2 no-print">
+              <button onclick="addBookmark('내 답변', '${q.category.replace(/'/g, "")} (#${item.attemptNum}차)', \`${safeTranscript}\`)" class="text-xs bg-amber-500 text-white px-2.5 py-1 rounded-lg hover:bg-amber-400 font-bold shadow-sm">
+                📌 내 답변 북마크 저장
+              </button>
+              <button id="userSpeakBtn_${currentQIndex}_${attemptIdx}"
+                      onclick="triggerUserSpeak(${currentQIndex}, ${attemptIdx})"
+                      class="text-xs bg-slate-700 text-white px-2.5 py-1 rounded-lg hover:bg-slate-600 font-bold shadow-sm">
+                🔊 내 답변 듣기
+              </button>
+            </div>
           </div>
-          <p class="italic">"${item.transcript}"</p>
+          <div id="userTtsContainer_${currentQIndex}_${attemptIdx}" class="bg-white p-2.5 rounded-lg border border-slate-200 leading-relaxed"></div>
         </div>
 
+        <!-- 2단 상세 첨삭 토글 -->
         <div class="pt-2">
-          <button onclick="toggleStage2View()" id="stage2ToggleBtn" class="w-full bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs hover:bg-slate-300 transition">
-            🔍 상세 첨삭 보기 (문법 교정 및 모범 답안 열기) ▼
+          <button onclick="toggleStage2View()" id="stage2ToggleBtn" class="w-full bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs hover:bg-slate-300 transition no-print">
+            🔍 상세 첨삭 보기 (ACTFL 4대 영역 · 문법 교정 · AL 모범 답안 열기) ▼
           </button>
           <div id="stage2Wrapper" class="hidden">
             ${stage2Html}
           </div>
         </div>
       `;
+
+      // 내 답변 및 모범답안 문단/문장 인터랙티브 DOM 생성 및 문단 수 표시
+      const userContainer = document.getElementById(`userTtsContainer_${currentQIndex}_${attemptIdx}`);
+      const userParaCount = TTSManager.renderInteractiveScript(userContainer, item.transcript);
+      const userBtn = document.getElementById(`userSpeakBtn_${currentQIndex}_${attemptIdx}`);
+      if (userBtn) {
+        const lbl = `🔊 내 답변 듣기 (${userParaCount}문단)`;
+        userBtn.innerText = lbl;
+        userBtn.setAttribute('data-tts-default-label', lbl);
+        userBtn.setAttribute('data-para-count', userParaCount);
+      }
+
+      if (item.stage2 && item.stage2.al_model_answer) {
+        const modelContainer = document.getElementById(`modelTtsContainer_${currentQIndex}_${attemptIdx}`);
+        const modelParaCount = TTSManager.renderInteractiveScript(modelContainer, item.stage2.al_model_answer);
+        const modelBtn = document.getElementById(`modelSpeakBtn_${currentQIndex}_${attemptIdx}`);
+        const cardAnsBtn = document.getElementById('cardAnsSpeakBtn');
+        const lbl = `🔊 답변 전체 듣기 (${modelParaCount}문단)`;
+        if (modelBtn) {
+          modelBtn.innerText = lbl;
+          modelBtn.setAttribute('data-tts-default-label', lbl);
+          modelBtn.setAttribute('data-para-count', modelParaCount);
+        }
+        if (cardAnsBtn) {
+          cardAnsBtn.innerText = lbl;
+          cardAnsBtn.setAttribute('data-tts-default-label', lbl);
+          cardAnsBtn.setAttribute('data-para-count', modelParaCount);
+        }
+      }
     }
 
-    function toggleStage2View() {
+    function triggerModelSpeak(qIdx, attIdx) {
+      const modelContainer = document.getElementById(`modelTtsContainer_${qIdx}_${attIdx}`);
+      const modelBtn = document.getElementById(`modelSpeakBtn_${qIdx}_${attIdx}`);
+      const cardBtn = document.getElementById('cardAnsSpeakBtn');
+      const pCount = modelContainer ? modelContainer.querySelectorAll('.tts-para').length : 1;
+      TTSManager.cycleAnswerPlayback(`model_${qIdx}_${attIdx}`, modelContainer, [modelBtn, cardBtn], pCount);
+    }
+
+    function triggerUserSpeak(qIdx, attIdx) {
+      const userContainer = document.getElementById(`userTtsContainer_${qIdx}_${attIdx}`);
+      const userBtn = document.getElementById(`userSpeakBtn_${qIdx}_${attIdx}`);
+      const pCount = userContainer ? userContainer.querySelectorAll('.tts-para').length : 1;
+      TTSManager.cycleAnswerPlayback(`user_${qIdx}_${attIdx}`, userContainer, [userBtn], pCount);
+    }
+
+    function toggleStage2View(forceOpen = false) {
       const wrapper = document.getElementById('stage2Wrapper');
       const btn = document.getElementById('stage2ToggleBtn');
-      if (wrapper.classList.contains('hidden')) {
+      if (!wrapper || !btn) return;
+      if (forceOpen || wrapper.classList.contains('hidden')) {
         wrapper.classList.remove('hidden');
         btn.innerText = '🔍 상세 첨삭 접기 ▲';
       } else {
         wrapper.classList.add('hidden');
-        btn.innerText = '🔍 상세 첨삭 보기 (문법 교정 및 모범 답안 열기) ▼';
+        btn.innerText = '🔍 상세 첨삭 보기 (ACTFL 4대 영역 · 문법 교정 · AL 모범 답안 열기) ▼';
       }
     }
   </script>
