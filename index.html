@@ -48,19 +48,16 @@
 <body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8 pb-24">
   <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 border border-slate-200 space-y-6">
     
-    <!-- 상단 헤더 (한 줄 압축 & 직관적 리뉴얼) -->
+    <!-- 상단 헤더 -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 gap-3">
       <div class="space-y-1.5">
-        <!-- 제목 + 버전명 한 줄 배치 -->
         <div class="flex items-baseline gap-1.5 flex-nowrap whitespace-nowrap">
           <h1 class="text-2xl sm:text-3xl font-black text-indigo-700 tracking-tight">
             🎯 미리오픽 <span class="text-xs sm:text-sm font-semibold text-slate-500">(MiriOPIc)</span>
           </h1>
-          <span class="bg-indigo-100 text-indigo-800 text-[11px] font-extrabold px-2 py-0.5 rounded-full self-center">v0.9.5</span>
+          <span class="bg-indigo-100 text-indigo-800 text-[11px] font-extrabold px-2 py-0.5 rounded-full self-center">v0.9.6</span>
         </div>
-        <!-- 모델명만 간결하게 표기 -->
         <p class="text-xs font-medium text-slate-500">Gemini-3.8-flash 사용</p>
-        <!-- 바로 아래 빨간색 개인 API 입력 버튼 + 경고 문구 -->
         <div class="flex items-center gap-2 flex-wrap pt-0.5 no-print">
           <button onclick="toggleApiModal()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold px-3 py-1 rounded-lg shadow-sm transition">
             🔑 개인 API 입력
@@ -69,11 +66,11 @@
         </div>
       </div>
 
-      <!-- 우측 액션 버튼 그룹 (KEEP / New Session / Survey) -->
+      <!-- 우측 액션 버튼 그룹 (설문 단계에서는 숨김, 문제 풀이 단계부터 KEEP/New Session/Survey 노출) -->
       <div class="flex items-center gap-2 shrink-0 no-print">
-        <button onclick="goToMypage()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition flex flex-col items-center leading-tight">
+        <button onclick="goToMypage()" id="headerKeepBtn" class="hidden bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition flex flex-col items-center leading-tight">
           <span class="text-xs font-extrabold tracking-wide">KEEP</span>
-          <span class="text-[10px] text-indigo-200 font-medium">내 표현 저장</span>
+          <span class="text-[10px] text-indigo-200 font-medium">내 표현 듣기</span>
         </button>
         <button onclick="shuffleNewTest()" id="reShuffleBtn" class="hidden bg-amber-500 hover:bg-amber-400 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition flex flex-col items-center leading-tight">
           <span class="text-xs font-extrabold tracking-wide">New Session</span>
@@ -100,13 +97,13 @@
     <!-- 비상용 클라우드 오디오 플레이어 -->
     <audio id="fallbackAudioPlayer" class="hidden no-print"></audio>
 
-    <!-- ==================== KEEP 모달 (내 표현 저장 보관함) ==================== -->
+    <!-- ==================== KEEP 모달 (내 표현 듣기 & 보관함) ==================== -->
     <div id="mypageModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
       <div class="bg-white w-full max-w-3xl max-h-[85vh] rounded-2xl p-6 shadow-2xl border border-slate-100 flex flex-col space-y-4">
         <div class="flex justify-between items-center border-b pb-3">
           <div>
-            <h2 class="text-lg font-extrabold text-indigo-900">📌 KEEP (내 표현 & 모범답안 스크립트 보관함)</h2>
-            <p class="text-xs text-slate-500">마음에 드는 표현을 수정하거나 TXT 파일로 다운로드하여 활용하세요.</p>
+            <h2 class="text-lg font-extrabold text-indigo-900">📌 KEEP (내 표현 듣기 & 스크립트 보관함)</h2>
+            <p class="text-xs text-slate-500">저장한 표현을 수정하거나 TXT 파일로 다운로드하여 복습하세요.</p>
           </div>
           <button onclick="closeMypage()" class="bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-300">
             ✕ 닫기
@@ -407,7 +404,11 @@
             </button>
           </div>
         </div>
-        <div id="qTextContainer" class="text-slate-800 font-medium leading-relaxed hidden border-t border-indigo-200/60 pt-3 text-sm"></div>
+        <!-- 질문 영어 원문 + 한국어 질문 해석 동시 노출 영역 -->
+        <div id="qScriptWrapper" class="hidden border-t border-indigo-200/60 pt-3 space-y-2">
+          <div id="qTextContainer" class="text-slate-800 font-medium leading-relaxed text-sm"></div>
+          <div id="qKoreanTranslation" class="bg-white/90 border border-indigo-200/80 rounded-lg px-3.5 py-2.5 text-xs text-indigo-950 leading-relaxed"></div>
+        </div>
       </div>
 
       <!-- 답변 및 스마트 녹음 영역 -->
@@ -418,9 +419,6 @@
             <button id="recordBtn" onclick="toggleRecording()" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-rose-500 shadow-md transition flex items-center gap-2">
               <span>● 말하기 시작</span>
               <span id="btnTimerBadge" class="font-mono bg-rose-800/80 px-2 py-0.5 rounded text-xs">00:00 (Max 2:00)</span>
-            </button>
-            <button onclick="clearAnswer()" class="bg-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-300">
-              초기화
             </button>
           </div>
         </div>
@@ -438,10 +436,10 @@
         
         <div class="grid grid-cols-2 gap-3">
           <button id="evalBtn" onclick="evaluateAnswer()" class="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-500 transition shadow-md text-sm">
-            ⚡ 초고속 채점 및 MP 피드백
+            ⚡ 내 답변 채점
           </button>
           <button onclick="addNewAttempt()" class="w-full bg-amber-600 text-white font-bold py-3.5 rounded-xl hover:bg-amber-500 transition shadow-md text-sm">
-            🔄 이 문제 재도전하기 (즉시 초기화)
+            🔄 재도전
           </button>
         </div>
 
@@ -464,13 +462,11 @@
 
   <!-- ==================== 우측 하단 음성 컨트롤 패널 (기본 상태: 접힘 / 인쇄 시 숨김) ==================== -->
   <div id="ttsFloatingPanel" class="fixed bottom-4 right-4 z-40 no-print">
-    <!-- 기본으로 보이는 접힌 미니 버튼 -->
     <button id="ttsPanelCollapsedBtn" onclick="TTSManager.togglePanel(false)" class="bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-xl border border-slate-700 text-xs font-extrabold flex items-center gap-2 hover:bg-slate-800 transition">
       <span>🔊 음성</span>
       <span id="ttsMiniStatus" class="w-2 h-2 rounded-full bg-emerald-400"></span>
     </button>
 
-    <!-- 클릭 시 펼쳐지는 상세 패널 (기본 hidden) -->
     <div id="ttsPanelExpanded" class="hidden bg-slate-900 text-white w-80 rounded-2xl shadow-2xl border border-slate-700 p-4 space-y-3 text-xs">
       <div class="flex justify-between items-center border-b border-slate-700 pb-2">
         <div class="flex items-center gap-1.5">
@@ -519,10 +515,11 @@
   </div>
 
   <script>
-    // ==================== 1. 실제 OPIc 전체 Background Survey DB (75+ 항목) ====================
+    // ==================== 1. 실제 OPIc 전체 Background Survey DB ====================
+    // 꿀설문에서 '영화보기' 제외 반영
     const SURVEY_DB = {
       leisure: [
-        { label: "영화보기", val: "movie", rec: true },
+        { label: "영화보기", val: "movie", rec: false },
         { label: "공연보기", val: "theater", rec: true },
         { label: "콘서트보기", val: "concert", rec: true },
         { label: "박물관 가기", val: "museum", rec: false },
@@ -699,29 +696,78 @@
       student: { kor: "학교/수업", eng: "studying as a student", place: "school or campus", item: "favorite class", act: "study" }
     };
 
+    // 영어 원문 + 자연스러운 한국어 질문 해석을 동시에 반환하는 템플릿
     const ROUTINE_TEMPLATES = [
-      (m) => `You indicated in the survey that you enjoy ${m.eng}. Tell me about your typical routine when you ${m.act}. When, how often, and with whom do you usually do it?`,
-      (m) => `I would like to know more about ${m.eng}. Describe your favorite ${m.place} in detail. What does it look like, and why do you prefer going there?`,
-      (m) => `Talk about your favorite ${m.item} related to ${m.eng}. Why do you like it so much, and how does it make you feel?`,
-      (m) => `What do you usually prepare before you ${m.act}? Walk me through the steps from start to finish.`,
-      (m) => `Where do you usually go to ${m.act}? Describe the atmosphere, the people you see there, and what makes that ${m.place} special.`,
-      (m) => `How often do you ${m.act} on weekends compared to weekdays? Tell me about everything you do when you spend time on this activity.`
+      (m) => ({
+        en: `You indicated in the survey that you enjoy ${m.eng}. Tell me about your typical routine when you ${m.act}. When, how often, and with whom do you usually do it?`,
+        ko: `설문에서 ${m.kor}을(를) 즐긴다고 답하셨네요. 평소 ${m.kor}을(를) 할 때의 전형적인 루틴에 대해 말씀해 주세요. 언제, 얼마나 자주, 누구와 함께 주로 하시나요?`
+      }),
+      (m) => ({
+        en: `I would like to know more about ${m.eng}. Describe your favorite ${m.place} in detail. What does it look like, and why do you prefer going there?`,
+        ko: `${m.kor}에 대해 더 자세히 알고 싶습니다. 가장 좋아하는 장소(곳)를 구체적으로 묘사해 주세요. 어떻게 생겼고, 왜 그곳에 가는 것을 선호하시나요?`
+      }),
+      (m) => ({
+        en: `Talk about your favorite ${m.item} related to ${m.eng}. Why do you like it so much, and how does it make you feel?`,
+        ko: `${m.kor}와(과) 관련하여 가장 좋아하는 대상이나 요소에 대해 이야기해 주세요. 왜 그것을 그렇게 좋아하며, 어떤 기분이 들게 하나요?`
+      }),
+      (m) => ({
+        en: `What do you usually prepare before you ${m.act}? Walk me through the steps from start to finish.`,
+        ko: `보통 ${m.kor}을(를) 하기 전에 무엇을 준비하시나요? 시작부터 끝까지의 과정을 순서대로 설명해 주세요.`
+      }),
+      (m) => ({
+        en: `Where do you usually go to ${m.act}? Describe the atmosphere, the people you see there, and what makes that ${m.place} special.`,
+        ko: `주로 어디에 가서 ${m.kor}을(를) 하시나요? 그곳의 분위기, 만나는 사람들, 그리고 그 장소만의 특별한 점을 묘사해 주세요.`
+      }),
+      (m) => ({
+        en: `How often do you ${m.act} on weekends compared to weekdays? Tell me about everything you do when you spend time on this activity.`,
+        ko: `평일과 비교했을 때 주말에는 얼마나 자주 ${m.kor}을(를) 하시나요? 이 활동을 하면서 보내는 모든 일과에 대해 말씀해 주세요.`
+      })
     ];
 
     const EXP_TEMPLATES = [
-      (m) => `Tell me about the most memorable experience you had while ${m.eng}. Who were you with, what happened, and why was it so unforgettable?`,
-      (m) => `Do you remember the very first time you tried ${m.eng}? When was it, how did you start, and what was your first impression?`,
-      (m) => `Sometimes unexpected things happen when we ${m.act}. Tell me about a funny, surprising, or unexpected incident you experienced at a ${m.place}.`,
-      (m) => `Think about the last time you went to a ${m.place} or spent time ${m.eng}. What did you do from the moment you started until you finished?`,
-      (m) => `Have you ever had a problem or difficulty related to ${m.item} while ${m.eng}? What was the issue, and how did you resolve it?`,
-      (m) => `Tell me about a time when someone recommended a great ${m.place} or ${m.item} to you. How was the experience when you actually tried it?`
+      (m) => ({
+        en: `Tell me about the most memorable experience you had while ${m.eng}. Who were you with, what happened, and why was it so unforgettable?`,
+        ko: `${m.kor}을(를) 하면서 겪었던 가장 기억에 남는 경험에 대해 말씀해 주세요. 누구와 함께 있었고, 무슨 일이 있었으며, 왜 그토록 잊지 못할 기억이 되었나요?`
+      }),
+      (m) => ({
+        en: `Do you remember the very first time you tried ${m.eng}? When was it, how did you start, and what was your first impression?`,
+        ko: `처음으로 ${m.kor}을(를) 해보았던 때를 기억하시나요? 언제였고, 어떻게 시작하게 되었으며, 첫인상은 어땠나요?`
+      }),
+      (m) => ({
+        en: `Sometimes unexpected things happen when we ${m.act}. Tell me about a funny, surprising, or unexpected incident you experienced at a ${m.place}.`,
+        ko: `${m.kor}을(를) 하다 보면 가끔 예상치 못한 일이 생기곤 합니다. 관련 장소에서 겪었던 재미있거나 놀랍거나 뜻밖이었던 사건을 이야기해 주세요.`
+      }),
+      (m) => ({
+        en: `Think about the last time you went to a ${m.place} or spent time ${m.eng}. What did you do from the moment you started until you finished?`,
+        ko: `가장 최근에 ${m.kor}을(를) 했던 때를 떠올려 보세요. 시작한 순간부터 끝날 때까지 무엇을 했는지 처음부터 끝까지 말씀해 주세요.`
+      }),
+      (m) => ({
+        en: `Have you ever had a problem or difficulty related to ${m.item} while ${m.eng}? What was the issue, and how did you resolve it?`,
+        ko: `${m.kor}을(를) 하는 도중에 문제나 어려움을 겪은 적이 있나요? 어떤 문제였고, 어떻게 해결하셨나요?`
+      }),
+      (m) => ({
+        en: `Tell me about a time when someone recommended a great ${m.place} or ${m.item} to you. How was the experience when you actually tried it?`,
+        ko: `누군가에게 ${m.kor}와(과) 관련된 멋진 장소나 대상을 추천받았던 경험에 대해 말씀해 주세요. 실제로 해보니 경험이 어땠나요?`
+      })
     ];
 
     const COMPARE_TEMPLATES = [
-      (m) => `How has your interest in ${m.eng} changed from the past to the present? Compare how you used to ${m.act} in the past with how you do it now.`,
-      (m) => `What are the biggest changes in ${m.place}s or how people enjoy ${m.eng} nowadays compared to 5 or 10 years ago?`,
-      (m) => `Compare two different ${m.place}s or ${m.item}s you have experienced for ${m.eng}. What are the pros and cons of each?`,
-      (m) => `Why is ${m.eng} so popular in your country today? How has technology or social media changed the way people ${m.act}?`
+      (m) => ({
+        en: `How has your interest in ${m.eng} changed from the past to the present? Compare how you used to ${m.act} in the past with how you do it now.`,
+        ko: `${m.kor}에 대한 당신의 관심이 과거에서 현재까지 어떻게 변해왔나요? 예전에 즐기던 방식과 지금의 방식을 비교해서 설명해 주세요.`
+      }),
+      (m) => ({
+        en: `What are the biggest changes in ${m.place}s or how people enjoy ${m.eng} nowadays compared to 5 or 10 years ago?`,
+        ko: `5년이나 10년 전과 비교했을 때, 요즘 사람들이 ${m.kor}을(를) 즐기는 방식이나 관련 장소의 가장 큰 변화는 무엇인가요?`
+      }),
+      (m) => ({
+        en: `Compare two different ${m.place}s or ${m.item}s you have experienced for ${m.eng}. What are the pros and cons of each?`,
+        ko: `${m.kor}와(과) 관련하여 경험해 본 서로 다른 두 가지 장소나 대상을 비교해 주세요. 각각의 장점과 단점은 무엇인가요?`
+      }),
+      (m) => ({
+        en: `Why is ${m.eng} so popular in your country today? How has technology or social media changed the way people ${m.act}?`,
+        ko: `오늘날 한국에서 ${m.kor}이(가) 왜 그렇게 인기가 많나요? 기술이나 SNS의 발달이 사람들이 이를 즐기는 방식을 어떻게 바꾸어 놓았나요?`
+      })
     ];
 
     const UNEXPECTED_POOL = [
@@ -744,51 +790,114 @@
     const ROLEPLAY_SCENARIOS = [
       {
         title: "공연/영화 티켓 예매",
-        q11: "I'd like to give you a situation and ask you to act it out. You want to buy tickets for a popular concert or movie this weekend. Call the box office and ask three or four questions about the schedule, seat availability, and ticket prices.",
-        q12: "I'm sorry, there's a problem. You bought two tickets for tonight's show, but you suddenly have an urgent family matter and cannot attend. Call the box office, explain your situation, and ask about getting a refund or changing the date.",
-        q13: "That's the end of the situation. Have you ever had to cancel a reservation or ticket at the last minute in real life? What happened, and how did you handle it?"
+        q11: {
+          en: "I'd like to give you a situation and ask you to act it out. You want to buy tickets for a popular concert or movie this weekend. Call the box office and ask three or four questions about the schedule, seat availability, and ticket prices.",
+          ko: "[롤플레이 - 질문하기] 이번 주말 인기 콘서트나 영화 티켓을 예매하려고 합니다. 매표소에 전화해서 상영/공연 일정, 좌석 예매 가능 여부, 티켓 가격 등에 대해 3~4가지 질문을 해보세요."
+        },
+        q12: {
+          en: "I'm sorry, there's a problem. You bought two tickets for tonight's show, but you suddenly have an urgent family matter and cannot attend. Call the box office, explain your situation, and ask about getting a refund or changing the date.",
+          ko: "[롤플레이 - 문제 해결] 오늘 저녁 공연 티켓 두 장을 샀는데, 갑자기 급한 집안일이 생겨 참석할 수 없게 되었습니다. 매표소에 전화해 상황을 설명하고 환불이나 날짜 변경이 가능한지 문의하세요."
+        },
+        q13: {
+          en: "That's the end of the situation. Have you ever had to cancel a reservation or ticket at the last minute in real life? What happened, and how did you handle it?",
+          ko: "[롤플레이 연계 경험] 실제 생활에서 예약이나 티켓을 막판에 취소해야 했던 적이 있나요? 어떤 일이 있었고, 어떻게 대처하셨나요?"
+        }
       },
       {
         title: "가전제품/가구 구매 및 배송",
-        q11: "Here is a situation: You want to buy a new refrigerator or sofa for your house. Call a store and ask three or four questions about the models, discounts, and delivery options.",
-        q12: "Unfortunately, the item was supposed to be delivered today, but it hasn't arrived yet, and you have to leave home soon. Call the store, explain the problem, and suggest two solutions to reschedule the delivery.",
-        q13: "Have you ever experienced a delayed delivery or received a damaged item when shopping? Tell me everything about what happened and how you solved the issue."
+        q11: {
+          en: "Here is a situation: You want to buy a new refrigerator or sofa for your house. Call a store and ask three or four questions about the models, discounts, and delivery options.",
+          ko: "[롤플레이 - 질문하기] 집에 둘 새 냉장고나 소파를 사려고 합니다. 매장에 전화해서 모델 종류, 할인 혜택, 배송 옵션에 대해 3~4가지 질문을 해보세요."
+        },
+        q12: {
+          en: "Unfortunately, the item was supposed to be delivered today, but it hasn't arrived yet, and you have to leave home soon. Call the store, explain the problem, and suggest two solutions to reschedule the delivery.",
+          ko: "[롤플레이 - 문제 해결] 오늘 물건이 배송될 예정이었으나 아직 도착하지 않았고, 곧 집을 비워야 하는 상황입니다. 매장에 전화해 문제를 설명하고 배송 일정을 다시 잡기 위한 두 가지 해결책을 제안하세요."
+        },
+        q13: {
+          en: "Have you ever experienced a delayed delivery or received a damaged item when shopping? Tell me everything about what happened and how you solved the issue.",
+          ko: "[롤플레이 연계 경험] 쇼핑을 하면서 배송이 지연되거나 파손된 물건을 받은 경험이 있나요? 무슨 일이 있었고 문제를 어떻게 해결했는지 모두 말씀해 주세요."
+        }
       },
       {
         title: "친구와의 약속 지연",
-        q11: "You planned to go to a new restaurant or park with your friend this Saturday. Call your friend and ask three or four questions to decide when and where to meet and what to bring.",
-        q12: "On the day of the meeting, you are stuck in heavy traffic or the subway broke down, so you will be 40 minutes late. Call your friend, apologize, explain why you are late, and suggest what your friend can do while waiting.",
-        q13: "Tell me about a time in the past when you or a friend were late for an important appointment. What caused the delay, and how did it turn out?"
+        q11: {
+          en: "You planned to go to a new restaurant or park with your friend this Saturday. Call your friend and ask three or four questions to decide when and where to meet and what to bring.",
+          ko: "[롤플레이 - 질문하기] 이번 토요일에 친구와 새로 생긴 식당이나 공원에 가기로 약속했습니다. 친구에게 전화해서 언제, 어디서 만날지, 무엇을 챙겨갈지 정하기 위해 3~4가지 질문을 해보세요."
+        },
+        q12: {
+          en: "On the day of the meeting, you are stuck in heavy traffic or the subway broke down, so you will be 40 minutes late. Call your friend, apologize, explain why you are late, and suggest what your friend can do while waiting.",
+          ko: "[롤플레이 - 문제 해결] 약속 당일 극심한 교통 체증이나 지하철 고장으로 40분 정도 늦게 되었습니다. 친구에게 전화해 사과하고 늦는 이유를 설명한 뒤, 기다리는 동안 친구가 할 수 있는 일을 제안하세요."
+        },
+        q13: {
+          en: "Tell me about a time in the past when you or a friend were late for an important appointment. What caused the delay, and how did it turn out?",
+          ko: "[롤플레이 연계 경험] 과거에 본인이나 친구가 중요한 약속에 늦었던 경험에 대해 말씀해 주세요. 무엇 때문에 늦었고, 결국 어떻게 되었나요?"
+        }
       },
       {
         title: "헬스장/학원 등록",
-        q11: "You want to sign up for a new gym membership or a cooking class near your home. Call the center and ask three or four questions about the programs, operating hours, and membership fees.",
-        q12: "After registering, you injured your ankle slightly or got busy with a sudden trip, so you can't attend for a month. Call the manager, explain your situation, and ask how you can pause or hold your membership.",
-        q13: "Have you ever signed up for a class or gym membership and had to stop going for some reason? Share a specific experience from start to finish."
+        q11: {
+          en: "You want to sign up for a new gym membership or a cooking class near your home. Call the center and ask three or four questions about the programs, operating hours, and membership fees.",
+          ko: "[롤플레이 - 질문하기] 집 근처 새 헬스장 회원권이나 요리 수업을 등록하려고 합니다. 센터에 전화해서 프로그램, 운영 시간, 수강료/회비에 대해 3~4가지 질문을 해보세요."
+        },
+        q12: {
+          en: "After registering, you injured your ankle slightly or got busy with a sudden trip, so you can't attend for a month. Call the manager, explain your situation, and ask how you can pause or hold your membership.",
+          ko: "[롤플레이 - 문제 해결] 등록 후 발목을 살짝 다쳤거나 갑작스러운 여행 일정이 생겨 한 달간 나갈 수 없게 되었습니다. 매니저에게 전화해 상황을 설명하고 회원권을 일시 정지(홀딩)하는 방법을 문의하세요."
+        },
+        q13: {
+          en: "Have you ever signed up for a class or gym membership and had to stop going for some reason? Share a specific experience from start to finish.",
+          ko: "[롤플레이 연계 경험] 수업이나 헬스장 회원권을 등록했다가 어떤 이유로 그만두어야 했던 적이 있나요? 처음부터 끝까지 구체적인 경험을 들려주세요."
+        }
       },
       {
         title: "호텔/여행 숙소 예약",
-        q11: "You are planning a vacation and want to book a hotel room. Call the hotel front desk and ask three or four questions about room types, breakfast, and nearby attractions.",
-        q12: "You just checked into your hotel room, but the air conditioner isn't working and the room is too noisy. Call the front desk, explain the issues, and ask for a room change or immediate repair.",
-        q13: "Have you ever had an unpleasant experience at a hotel or accommodation while traveling? What was the problem, and how did the staff handle it?"
+        q11: {
+          en: "You are planning a vacation and want to book a hotel room. Call the hotel front desk and ask three or four questions about room types, breakfast, and nearby attractions.",
+          ko: "[롤플레이 - 질문하기] 휴가를 계획 중이며 호텔 객실을 예약하려고 합니다. 호텔 프런트 데스크에 전화해서 객실 타입, 조식, 주변 관광 명소에 대해 3~4가지 질문을 해보세요."
+        },
+        q12: {
+          en: "You just checked into your hotel room, but the air conditioner isn't working and the room is too noisy. Call the front desk, explain the issues, and ask for a room change or immediate repair.",
+          ko: "[롤플레이 - 문제 해결] 방금 호텔 객실에 체크인했는데 에어컨이 작동하지 않고 방이 너무 시끄럽습니다. 프런트 데스크에 전화해 문제를 설명하고 방 변경이나 즉각적인 수리를 요청하세요."
+        },
+        q13: {
+          en: "Have you ever had an unpleasant experience at a hotel or accommodation while traveling? What was the problem, and how did the staff handle it?",
+          ko: "[롤플레이 연계 경험] 여행 중 호텔이나 숙소에서 불쾌한 경험을 한 적이 있나요? 어떤 문제였고, 직원이 어떻게 처리해 주었나요?"
+        }
       },
       {
         title: "분실물 문의 (카페/대중교통)",
-        q11: "You want to visit a famous cafe or library with your friend. Call the place and ask three or four questions about parking, opening hours, and Wi-Fi availability.",
-        q12: "After coming home from that place, you realized you left your smartphone or bag there. Call the staff, describe the item in detail, explain where you sat, and ask them to check if it's there.",
-        q13: "Have you ever lost an important item like a wallet, phone, or umbrella in a public place? Did you get it back? Tell me the whole story."
+        q11: {
+          en: "You want to visit a famous cafe or library with your friend. Call the place and ask three or four questions about parking, opening hours, and Wi-Fi availability.",
+          ko: "[롤플레이 - 질문하기] 친구와 유명한 카페나 도서관에 방문하려고 합니다. 그곳에 전화해서 주차 가능 여부, 영업시간, 와이파이 이용 가능 여부에 대해 3~4가지 질문을 해보세요."
+        },
+        q12: {
+          en: "After coming home from that place, you realized you left your smartphone or bag there. Call the staff, describe the item in detail, explain where you sat, and ask them to check if it's there.",
+          ko: "[롤플레이 - 문제 해결] 그곳에서 집에 돌아온 뒤 스마트폰이나 가방을 두고 온 것을 알게 되었습니다. 직원에게 전화해 물건을 자세히 묘사하고 어디에 앉았는지 설명한 뒤, 물건이 있는지 확인해 달라고 부탁하세요."
+        },
+        q13: {
+          en: "Have you ever lost an important item like a wallet, phone, or umbrella in a public place? Did you get it back? Tell me the whole story.",
+          ko: "[롤플레이 연계 경험] 공공장소에서 지갑, 휴대폰, 우산 같은 중요한 물건을 잃어버린 적이 있나요? 다시 되찾으셨나요? 전체 이야기를 들려주세요."
+        }
       }
     ];
 
     const INTRO_VARIATIONS = [
-      "Let's start the interview now. Tell me a little bit about yourself, where you live, and what you usually do in your free time.",
-      "We will now begin the interview. Please introduce yourself in detail, including your daily routine and your main interests.",
-      "Let's get started. Tell me about yourself, your neighborhood, and how you like to spend your weekends."
+      {
+        en: "Let's start the interview now. Tell me a little bit about yourself, where you live, and what you usually do in your free time.",
+        ko: "지금부터 인터뷰를 시작하겠습니다. 본인에 대해 간단히 소개해 주시고, 어디에 사는지, 그리고 여가 시간에 주로 무엇을 하는지 말씀해 주세요."
+      },
+      {
+        en: "We will now begin the interview. Please introduce yourself in detail, including your daily routine and your main interests.",
+        ko: "이제 인터뷰를 시작하겠습니다. 평소 일상 루틴과 주요 관심사를 포함하여 본인에 대해 자세히 소개해 주세요."
+      },
+      {
+        en: "Let's get started. Tell me about yourself, your neighborhood, and how you like to spend your weekends.",
+        ko: "자, 시작해 봅시다. 본인 소개와 살고 계신 동네, 그리고 주말을 어떻게 보내시는지 말씀해 주세요."
+      }
     ];
 
     // ==================== 2. 원어민 음성(TTS) 애드온 상태머신 (TTSManager) ====================
     const TTSManager = {
-      state: 'IDLE', // 'IDLE' | 'PLAYING_ONCE' | 'PLAYING_LOOP' | 'SINGLE_SENTENCE' | 'PAUSED'
+      state: 'IDLE',
       activeTargetId: null,
       queue: [],
       currentIndex: 0,
@@ -914,14 +1023,12 @@
         return finalParas.length;
       },
 
-      // [1번 요구사항] 특정 문장 클릭 시 진행 중이던 모든 음성 명령을 즉시 종료하고 해당 문장만 최우선 재생
       playSingleSentence(sentEl, event) {
         if (event) event.stopPropagation();
         if (!sentEl) return;
         const text = sentEl.innerText.trim();
         if (!text) return;
 
-        // 기존 진행 중인 전체 듣기 / 무한반복 / 다른 음성 명령 즉시 종료
         this.stop();
 
         const paraEl = sentEl.closest('.tts-para');
@@ -961,13 +1068,14 @@
       },
 
       playQuestion() {
+        const qWrapper = document.getElementById('qScriptWrapper');
         const qContainer = document.getElementById('qTextContainer');
         const qBtn = document.getElementById('qSpeakBtn');
         if (this.activeTargetId === 'question' && this.state !== 'IDLE') {
           this.stop();
           return;
         }
-        qContainer.classList.remove('hidden');
+        qWrapper.classList.remove('hidden');
         this.startQueue('question', qContainer, 'PLAYING_ONCE', [qBtn], 1);
       },
 
@@ -1234,12 +1342,13 @@
       if (jobVal && jobVal !== 'none' && TOPIC_META[jobVal]) userPoolKeys.push(jobVal);
       if (stuVal === 'yes') userPoolKeys.push('student');
 
+      // 설문 미선택 시 변경된 꿀설문 기본 풀(영화 제외: 공연, 콘서트, 공원, 술집, 카페, 음악, 조깅, 걷기, 운동안함, 집콕, 국내여행, 해외여행) 사용
       if (userPoolKeys.length < 3) {
-        userPoolKeys = ['movie', 'theater', 'concert', 'park', 'bar', 'cafe', 'music', 'jogging', 'walking', 'no_exercise', 'staycation', 'domestic_travel', 'overseas_travel'];
+        userPoolKeys = ['theater', 'concert', 'park', 'bar', 'cafe', 'music', 'jogging', 'walking', 'no_exercise', 'staycation', 'domestic_travel', 'overseas_travel'];
       }
 
       const shuffledTopics = shuffleArray(userPoolKeys);
-      const topicA = TOPIC_META[shuffledTopics[0]] || TOPIC_META.movie;
+      const topicA = TOPIC_META[shuffledTopics[0]] || TOPIC_META.theater;
       const topicB = TOPIC_META[shuffledTopics[1]] || TOPIC_META.cafe;
       const topicC = TOPIC_META[shuffledTopics[2]] || TOPIC_META.music;
 
@@ -1255,28 +1364,42 @@
       const eTplU = shuffleArray(EXP_TEMPLATES);
       const cTplU = shuffleArray(COMPARE_TEMPLATES);
 
+      const introObj = pickRandom(INTRO_VARIATIONS);
+      const q2 = rTplA[0](topicA);
+      const q3 = rTplA[1](topicA);
+      const q4 = eTplA[0](topicA);
+      const q5 = rTplB[0](topicB);
+      const q6 = eTplB[0](topicB);
+      const q7 = cTplA[0](topicB);
+      const q8 = rTplU[0](unexpectedMeta);
+      const q9 = eTplU[0](unexpectedMeta);
+      const q10 = cTplU[0](unexpectedMeta);
+      const q14 = cTplA[1](topicC);
+      const q15 = cTplA[2](topicC);
+
       const generated = [
-        { category: "Q1. 자기소개 (Background)", text: pickRandom(INTRO_VARIATIONS), subType: "intro" },
-        { category: `Q2. 설문 콤보1 - ${topicA.kor} (루틴/묘사)`, text: rTplA[0](topicA), subType: "routine" },
-        { category: `Q3. 설문 콤보1 - ${topicA.kor} (장소/세부특징)`, text: rTplA[1](topicA), subType: "routine" },
-        { category: `Q4. 설문 콤보1 - ${topicA.kor} (과거 경험)`, text: eTplA[0](topicA), subType: "experience" },
-        { category: `Q5. 설문 콤보2 - ${topicB.kor} (습관/선호)`, text: rTplB[0](topicB), subType: "routine" },
-        { category: `Q6. 설문 콤보2 - ${topicB.kor} (기억에 남는 일)`, text: eTplB[0](topicB), subType: "experience" },
-        { category: `Q7. 설문 콤보2 - ${topicB.kor} (과거/현재 비교)`, text: cTplA[0](topicB), subType: "compare" },
-        { category: `Q8. 돌발 콤보 - ${unexpectedMeta.kor} (일반 묘사)`, text: rTplU[0](unexpectedMeta), subType: "routine" },
-        { category: `Q9. 돌발 콤보 - ${unexpectedMeta.kor} (문제/경험담)`, text: eTplU[0](unexpectedMeta), subType: "experience" },
-        { category: `Q10. 돌발 콤보 - ${unexpectedMeta.kor} (트렌드/변화)`, text: cTplU[0](unexpectedMeta), subType: "compare" },
-        { category: `Q11. 롤플레이 - ${rp.title} (질문하기)`, text: rp.q11, subType: "roleplay" },
-        { category: `Q12. 롤플레이 - ${rp.title} (대안제시/해결)`, text: rp.q12, subType: "roleplay" },
-        { category: `Q13. 롤플레이 연계 - ${rp.title} (실제 경험)`, text: rp.q13, subType: "experience" },
-        { category: `Q14. 심화 콤보 - ${topicC.kor} (비교/대조)`, text: cTplA[1](topicC), subType: "compare" },
-        { category: `Q15. 심화 콤보 - ${topicC.kor} (사회이슈/이유)`, text: cTplA[2](topicC), subType: "roleplay" }
+        { category: "Q1. 자기소개 (Background)", text: introObj.en, translation: introObj.ko, subType: "intro" },
+        { category: `Q2. 설문 콤보1 - ${topicA.kor} (루틴/묘사)`, text: q2.en, translation: q2.ko, subType: "routine" },
+        { category: `Q3. 설문 콤보1 - ${topicA.kor} (장소/세부특징)`, text: q3.en, translation: q3.ko, subType: "routine" },
+        { category: `Q4. 설문 콤보1 - ${topicA.kor} (과거 경험)`, text: q4.en, translation: q4.ko, subType: "experience" },
+        { category: `Q5. 설문 콤보2 - ${topicB.kor} (습관/선호)`, text: q5.en, translation: q5.ko, subType: "routine" },
+        { category: `Q6. 설문 콤보2 - ${topicB.kor} (기억에 남는 일)`, text: q6.en, translation: q6.ko, subType: "experience" },
+        { category: `Q7. 설문 콤보2 - ${topicB.kor} (과거/현재 비교)`, text: q7.en, translation: q7.ko, subType: "compare" },
+        { category: `Q8. 돌발 콤보 - ${unexpectedMeta.kor} (일반 묘사)`, text: q8.en, translation: q8.ko, subType: "routine" },
+        { category: `Q9. 돌발 콤보 - ${unexpectedMeta.kor} (문제/경험담)`, text: q9.en, translation: q9.ko, subType: "experience" },
+        { category: `Q10. 돌발 콤보 - ${unexpectedMeta.kor} (트렌드/변화)`, text: q10.en, translation: q10.ko, subType: "compare" },
+        { category: `Q11. 롤플레이 - ${rp.title} (질문하기)`, text: rp.q11.en, translation: rp.q11.ko, subType: "roleplay" },
+        { category: `Q12. 롤플레이 - ${rp.title} (대안제시/해결)`, text: rp.q12.en, translation: rp.q12.ko, subType: "roleplay" },
+        { category: `Q13. 롤플레이 연계 - ${rp.title} (실제 경험)`, text: rp.q13.en, translation: rp.q13.ko, subType: "experience" },
+        { category: `Q14. 심화 콤보 - ${topicC.kor} (비교/대조)`, text: q14.en, translation: q14.ko, subType: "compare" },
+        { category: `Q15. 심화 콤보 - ${topicC.kor} (사회이슈/이유)`, text: q15.en, translation: q15.ko, subType: "roleplay" }
       ];
 
       return generated.map((q, idx) => ({
         id: idx + 1,
         category: q.category,
         text: q.text,
+        translation: q.translation,
         subType: q.subType,
         attempts: []
       }));
@@ -1321,7 +1444,7 @@
       if (myBookmarks.length === 0) {
         container.innerHTML = `
           <div class="text-center py-10 text-slate-400">
-            아직 저장된 스크립트가 없습니다.<br>모의고사 채점 리포트에서 [📌 북마크에 저장] 버튼을 눌러보세요!
+            아직 저장된 스크립트가 없습니다.<br>채점 리포트에서 [KEEP 내 표현 저장] 버튼을 눌러보세요!
           </div>
         `;
         return;
@@ -1505,6 +1628,7 @@
       TTSManager.stop();
       clearAnswer();
       document.getElementById('testSection').classList.add('hidden');
+      document.getElementById('headerKeepBtn').classList.add('hidden');
       document.getElementById('backToSurveyBtn').classList.add('hidden');
       document.getElementById('reShuffleBtn').classList.add('hidden');
       document.getElementById('surveySection').classList.remove('hidden');
@@ -1517,6 +1641,7 @@
 
       document.getElementById('surveySection').classList.add('hidden');
       document.getElementById('testSection').classList.remove('hidden');
+      document.getElementById('headerKeepBtn').classList.remove('hidden');
       document.getElementById('backToSurveyBtn').classList.remove('hidden');
       document.getElementById('reShuffleBtn').classList.remove('hidden');
       renderQuestion(0);
@@ -1558,9 +1683,13 @@
       document.getElementById('qCategory').innerText = q.category;
       updateTimerBadgeLabel(0);
 
+      const qScriptWrapper = document.getElementById('qScriptWrapper');
       const qTextContainer = document.getElementById('qTextContainer');
+      const qKoreanEl = document.getElementById('qKoreanTranslation');
+
       TTSManager.renderInteractiveScript(qTextContainer, q.text);
-      qTextContainer.classList.add('hidden');
+      qKoreanEl.innerHTML = `<span class="font-extrabold text-indigo-700">🇰🇷 질문 해석:</span> ${q.translation || ''}`;
+      qScriptWrapper.classList.add('hidden');
 
       finalTranscriptCache = '';
       if (q.attempts.length > 0) {
@@ -1573,7 +1702,7 @@
     }
 
     function toggleScript() {
-      document.getElementById('qTextContainer').classList.toggle('hidden');
+      document.getElementById('qScriptWrapper').classList.toggle('hidden');
     }
 
     function clearAnswer() {
@@ -1868,9 +1997,8 @@ Return ONLY valid JSON:
         qObj.attempts[attemptIdx].isStage2Loading = false;
         
         if (currentQIndex === questions.indexOf(qObj)) {
-          const wasOpen = !document.getElementById('stage2Wrapper')?.classList.contains('hidden');
-          renderAttempts(attemptIdx);
-          if (wasOpen) toggleStage2View(true);
+          const isCurrentlyOpen = !document.getElementById('stage2Wrapper')?.classList.contains('hidden');
+          renderAttempts(attemptIdx, isCurrentlyOpen);
         }
       } catch (e) {
         if (qObj.attempts[attemptIdx]) {
@@ -1879,7 +2007,8 @@ Return ONLY valid JSON:
       }
     }
 
-    function renderAttempts(attemptIdx) {
+    // 상세 첨삭 항상 펼침 상태(keepOpen = true) 기본 적용
+    function renderAttempts(attemptIdx, keepOpen = true) {
       const q = questions[currentQIndex];
       const container = document.getElementById('feedbackContainer');
       if (q.attempts.length === 0) {
@@ -1890,7 +2019,7 @@ Return ONLY valid JSON:
 
       const tabsEl = document.getElementById('attemptTabs');
       tabsEl.innerHTML = q.attempts.map((att, idx) => `
-        <button onclick="renderAttempts(${idx})" 
+        <button onclick="renderAttempts(${idx}, true)" 
                 class="px-3 py-1 rounded-lg text-xs font-bold transition ${idx === attemptIdx ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}">
           #${att.attemptNum}차 시도 (${att.stage1.estimated_grade})
         </button>
@@ -1989,13 +2118,15 @@ Return ONLY valid JSON:
                   </div>
                   <p class="text-[11px] text-emerald-700">💡 특정 문장을 클릭하면 해당 문장만 즉시 재생됩니다 | 전체듣기: 1회(1회) → 2회(무한반복) → 3회(정지)</p>
                 </div>
-                <div class="flex gap-2 no-print">
-                  <button onclick="addBookmark('모범답안+해석', '${q.category.replace(/'/g, "")}', \`${safeBookmarkPayload}\`)" class="text-xs bg-amber-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-amber-400 font-bold shadow-sm">
-                    📌 KEEP 저장
+                <div class="flex items-center gap-2 no-print">
+                  <!-- 헤더 KEEP 버튼과 완전히 동일한 디자인·색상·레이아웃 -->
+                  <button onclick="addBookmark('모범답안+해석', '${q.category.replace(/'/g, "")}', \`${safeBookmarkPayload}\`)" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition flex flex-col items-center leading-tight">
+                    <span class="text-xs font-extrabold tracking-wide">KEEP</span>
+                    <span class="text-[10px] text-indigo-200 font-medium">내 표현 저장</span>
                   </button>
                   <button id="modelSpeakBtn_${currentQIndex}_${attemptIdx}" 
                           onclick="triggerModelSpeak(${currentQIndex}, ${attemptIdx})" 
-                          class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-500 font-bold shadow-sm transition">
+                          class="text-xs bg-emerald-600 text-white px-3 py-2 rounded-xl hover:bg-emerald-500 font-bold shadow-sm transition">
                     🔊 모범답안 다시듣기
                   </button>
                 </div>
@@ -2082,23 +2213,26 @@ Return ONLY valid JSON:
             <span class="text-[11px] text-slate-400">💡 문장 클릭 시 해당 문장만 재생 | 버튼: 1회 → 무한반복 → 정지</span>
           </div>
           <div id="userTtsContainer_${currentQIndex}_${attemptIdx}" class="bg-white p-3 rounded-lg border border-slate-200 leading-relaxed"></div>
-          <div class="flex justify-end gap-2 pt-1 no-print">
-            <button onclick="addBookmark('내 답변', '${q.category.replace(/'/g, "")} (#${item.attemptNum}차)', \`${safeTranscript}\`)" class="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-400 font-bold shadow-sm">
-              📌 KEEP 저장
+          <div class="flex justify-end items-center gap-2 pt-1 no-print">
+            <!-- 헤더 KEEP 버튼과 완전히 동일한 디자인·색상·레이아웃 -->
+            <button onclick="addBookmark('내 답변', '${q.category.replace(/'/g, "")} (#${item.attemptNum}차)', \`${safeTranscript}\`)" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-xl shadow-sm transition flex flex-col items-center leading-tight">
+              <span class="text-xs font-extrabold tracking-wide">KEEP</span>
+              <span class="text-[10px] text-indigo-200 font-medium">내 표현 저장</span>
             </button>
             <button id="userSpeakBtn_${currentQIndex}_${attemptIdx}"
                     onclick="triggerUserSpeak(${currentQIndex}, ${attemptIdx})"
-                    class="text-xs bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg hover:bg-indigo-500 font-bold shadow-sm transition">
+                    class="text-xs bg-slate-700 text-white px-3.5 py-2.5 rounded-xl hover:bg-slate-600 font-bold shadow-sm transition">
               🔊 내 답변 듣기
             </button>
           </div>
         </div>
 
+        <!-- 상세 첨삭 영역: 항상 펼침 상태(keepOpen)를 기본으로 적용 -->
         <div class="pt-2">
           <button onclick="toggleStage2View()" id="stage2ToggleBtn" class="w-full bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs hover:bg-slate-300 transition no-print">
-            🔍 상세 첨삭 보기 (ACTFL 4대 영역 · 문법 교정 · AL 모범 답안 및 해석 열기) ▼
+            ${keepOpen ? '🔍 상세 첨삭 접기 ▲' : '🔍 상세 첨삭 보기 (ACTFL 4대 영역 · 문법 교정 · AL 모범 답안 및 해석 열기) ▼'}
           </button>
-          <div id="stage2Wrapper" class="hidden">
+          <div id="stage2Wrapper" class="${keepOpen ? '' : 'hidden'}">
             ${stage2Html}
           </div>
         </div>
