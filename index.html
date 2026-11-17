@@ -6,7 +6,7 @@
   <title>미리오픽 (MiriOPIc) - OPIc AL 실전 모의고사 튜터</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* ==================== TTS 애드온 전용 스타일 ==================== */
+    /* ==================== 음성(TTS) 애드온 전용 스타일 ==================== */
     .tts-para {
       transition: all 0.25s ease;
       border-left: 3px solid transparent;
@@ -48,9 +48,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
-          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.9.2 (실제 OPIc 풀 설문 & 12개 꿀조합)</span>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.9.3 (UI 동선 및 꿀설문 최적화)</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">실제 OPIc 전체 설문(75+항목) → 1,000+ 랜덤 문제은행 → 쉬운 단어·원어민 이디엄 AL 모범답안(해석·소요시간) → 3단 루프 TTS</p>
+        <p class="text-xs text-slate-500 mt-1">실제 OPIc 설문(술집·카페/비운동 꿀세팅) → 1,000+ 랜덤 문제은행 → 쉬운 어휘 AL 모범답안(해석·소요시간) → 음성 하이라이트</p>
       </div>
       <div class="flex gap-2 flex-wrap no-print">
         <button onclick="goToMypage()" class="text-xs bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg font-bold hover:bg-indigo-500 shadow-sm flex items-center gap-1">
@@ -134,7 +134,7 @@
         </div>
         <div class="flex gap-2 shrink-0">
           <button onclick="applyPopularPreset()" class="bg-amber-500 text-white text-xs font-extrabold px-3.5 py-2.5 rounded-xl hover:bg-amber-400 shadow transition">
-            ⚡ 국민 꿀설문 세팅 원클릭 적용 (12개)
+            ⚡ 국민 꿀설문 세팅 원클릭 적용
           </button>
           <button onclick="clearAllSurvey()" class="bg-white border border-slate-300 text-slate-600 text-xs font-bold px-3 py-2.5 rounded-xl hover:bg-slate-50">
             전체 해제
@@ -170,7 +170,6 @@
             </label>
           </div>
           
-          <!-- 일 경험 없음 선택 시 추가 질문: 군 복무 여부 -->
           <div id="sub_job_military" class="hidden pl-4 border-l-2 border-indigo-400 space-y-2 pt-2 text-xs">
             <div class="font-bold text-indigo-800">↳ 1-1. 군 복무 경험이 있습니까?</div>
             <div class="flex gap-4">
@@ -185,7 +184,6 @@
             </div>
           </div>
 
-          <!-- 직장 선택 시 추가 질문: 경력 기간 -->
           <div id="sub_job_career" class="hidden pl-4 border-l-2 border-indigo-400 space-y-2 pt-2 text-xs">
             <div class="font-bold text-indigo-800">↳ 1-1. 현재 업무 경험 기간은 어떠합니까?</div>
             <select id="q1_sub_job" class="border rounded-lg p-2 bg-white w-full md:w-2/3">
@@ -212,7 +210,6 @@
             </label>
           </div>
 
-          <!-- 예 선택 시: 학위 과정 / 어학 수업 / 평생교육 택1 -->
           <div id="sub_stu_yes" class="hidden pl-4 border-l-2 border-indigo-400 space-y-2 pt-2 text-xs">
             <div class="font-bold text-indigo-800">↳ 2-1. 어떤 교육을 받고 계십니까? (택1)</div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -231,7 +228,6 @@
             </div>
           </div>
 
-          <!-- 아니요 선택 시: 최근 강의 수강 여부 -->
           <div id="sub_stu_no" class="hidden pl-4 border-l-2 border-indigo-400 space-y-2 pt-2 text-xs">
             <div class="font-bold text-indigo-800">↳ 2-1. 최근에 어떤 강의를 수강하셨습니까?</div>
             <select id="q2_sub_stu" class="border rounded-lg p-2 bg-white w-full md:w-2/3">
@@ -380,16 +376,13 @@
         <div class="flex gap-1.5 flex-wrap" id="navTabs"></div>
       </div>
 
-      <!-- 문제 카드 -->
+      <!-- 문제 카드 (질문 듣기와 질문 텍스트 보기만 깔끔하게 유지) -->
       <div class="bg-indigo-50/70 border border-indigo-100 p-5 rounded-xl space-y-4">
         <div class="flex justify-between items-center flex-wrap gap-2">
           <span id="qCategory" class="text-xs font-extrabold uppercase tracking-wider bg-indigo-200 text-indigo-900 px-3 py-1 rounded-full"></span>
           <div class="flex gap-2 flex-wrap tts-btn-group no-print">
             <button id="qSpeakBtn" onclick="TTSManager.playQuestion()" class="bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-500 shadow-sm flex items-center gap-1 transition">
               🔊 질문 듣기
-            </button>
-            <button id="cardAnsSpeakBtn" onclick="TTSManager.cycleCardAnswer()" class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-500 shadow-sm flex items-center gap-1 transition">
-              🔊 답변 전체 듣기
             </button>
             <button onclick="toggleScript()" class="bg-white border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-50">
               👀 질문 텍스트 보기
@@ -451,17 +444,17 @@
     </div>
   </div>
 
-  <!-- ==================== 우측 하단 TTS 컨트롤 패널 (접기 가능 & 인쇄 시 숨김) ==================== -->
+  <!-- ==================== 우측 하단 음성 컨트롤 패널 (접기 가능 & 인쇄 시 숨김) ==================== -->
   <div id="ttsFloatingPanel" class="fixed bottom-4 right-4 z-40 no-print">
     <button id="ttsPanelCollapsedBtn" onclick="TTSManager.togglePanel(false)" class="hidden bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-xl border border-slate-700 text-xs font-extrabold flex items-center gap-2 hover:bg-slate-800 transition">
-      <span>🔊 TTS 컨트롤러</span>
+      <span>🔊 음성</span>
       <span id="ttsMiniStatus" class="w-2 h-2 rounded-full bg-emerald-400"></span>
     </button>
 
     <div id="ttsPanelExpanded" class="bg-slate-900 text-white w-80 rounded-2xl shadow-2xl border border-slate-700 p-4 space-y-3 text-xs">
       <div class="flex justify-between items-center border-b border-slate-700 pb-2">
         <div class="flex items-center gap-1.5">
-          <span class="font-extrabold text-indigo-300">🎛️ 원어민 TTS 컨트롤 패널</span>
+          <span class="font-extrabold text-indigo-300">🎛️ 음성 설정</span>
           <span id="ttsStateBadge" class="bg-slate-700 text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-bold">대기 중</span>
         </div>
         <button onclick="TTSManager.togglePanel(true)" class="text-slate-400 hover:text-white font-bold px-1.5 py-0.5 rounded bg-slate-800" title="패널 접기">
@@ -507,7 +500,7 @@
 
   <script>
     // ==================== 1. 실제 OPIc 전체 Background Survey DB (75+ 항목) ====================
-    // rec: true 는 사용자 제시 꿀설문 12개 정확 매칭
+    // 꿀추천 변경 반영: 쇼핑하기 제거 -> 술집/바, 카페 추가 / 하이킹 제거 -> 운동을 전혀 하지 않음 추가
     const SURVEY_DB = {
       leisure: [
         { label: "영화보기", val: "movie", rec: true },
@@ -519,8 +512,8 @@
         { label: "해변 가기", val: "beach", rec: false },
         { label: "스포츠 관람", val: "watch_sports", rec: false },
         { label: "주거 개선", val: "home_improvement", rec: false },
-        { label: "술집/바에 가기", val: "bar", rec: false },
-        { label: "카페/커피전문점 가기", val: "cafe", rec: false },
+        { label: "술집/바에 가기", val: "bar", rec: true },
+        { label: "카페/커피전문점 가기", val: "cafe", rec: true },
         { label: "게임하기(비디오·카드·보드·폰)", val: "game", rec: false },
         { label: "당구 치기", val: "billiards", rec: false },
         { label: "체스 하기", val: "chess", rec: false },
@@ -545,7 +538,7 @@
         { label: "주식 투자하기", val: "stock", rec: false },
         { label: "자원봉사하기", val: "volunteering", rec: false },
         { label: "종교 활동하기", val: "religion", rec: false },
-        { label: "쇼핑하기", val: "shopping", rec: true },
+        { label: "쇼핑하기", val: "shopping", rec: false },
         { label: "차 운전하기", val: "driving", rec: false }
       ],
       hobbies: [
@@ -589,11 +582,11 @@
         { label: "조깅", val: "jogging", rec: true },
         { label: "걷기", val: "walking", rec: true },
         { label: "요가", val: "yoga", rec: false },
-        { label: "하이킹·트레킹", val: "hiking", rec: true },
+        { label: "하이킹·트레킹", val: "hiking", rec: false },
         { label: "낚시", val: "fishing", rec: false },
         { label: "태권도", val: "taekwondo", rec: false },
         { label: "헬스", val: "gym", rec: false },
-        { label: "운동을 전혀 하지 않음", val: "no_exercise", rec: false }
+        { label: "운동을 전혀 하지 않음", val: "no_exercise", rec: true }
       ],
       vacation: [
         { label: "국내 출장", val: "domestic_biz_trip", rec: false },
@@ -604,7 +597,6 @@
       ]
     };
 
-    // 전체 75+ 항목에 대응하는 1:1 주제 메타데이터
     const TOPIC_META = {
       movie: { kor: "영화보기", eng: "going to the movies", place: "movie theater", item: "movie or actor", act: "watch movies" },
       theater: { kor: "공연보기", eng: "going to the theater", place: "theater or performance hall", item: "play or musical", act: "watch a live show" },
@@ -671,7 +663,7 @@
       fishing: { kor: "낚시", eng: "going fishing", place: "lake or river", item: "fishing rod", act: "go fishing" },
       taekwondo: { kor: "태권도", eng: "practicing Taekwondo", place: "martial arts gym", item: "uniform or kick", act: "practice Taekwondo" },
       gym: { kor: "헬스", eng: "working out at the gym", place: "fitness center", item: "workout routine", act: "work out at the gym" },
-      no_exercise: { kor: "건강 관리(비운동)", eng: "staying healthy without exercising", place: "home", item: "daily health habit", act: "stay healthy" },
+      no_exercise: { kor: "운동을 전혀 하지 않음", eng: "staying healthy without exercising", place: "home", item: "daily health habit", act: "stay healthy" },
       domestic_biz_trip: { kor: "국내 출장", eng: "going on domestic business trips", place: "other cities in your country", item: "business trip preparation", act: "travel for work" },
       overseas_biz_trip: { kor: "해외 출장", eng: "going on overseas business trips", place: "foreign countries", item: "international flight or meeting", act: "travel abroad for business" },
       staycation: { kor: "집에서 보내는 휴가", eng: "taking a staycation at home", place: "your house or apartment", item: "relaxing activity", act: "spend a vacation at home" },
@@ -775,7 +767,7 @@
       "Let's get started. Tell me about yourself, your neighborhood, and how you like to spend your weekends."
     ];
 
-    // ==================== 2. 원어민 TTS 애드온 상태머신 (TTSManager) ====================
+    // ==================== 2. 원어민 음성(TTS) 애드온 상태머신 (TTSManager) ====================
     const TTSManager = {
       state: 'IDLE',
       activeTargetId: null,
@@ -932,49 +924,6 @@
         }
         qContainer.classList.remove('hidden');
         this.startQueue('question', qContainer, 'PLAYING_ONCE', [qBtn], 1);
-      },
-
-      cycleCardAnswer() {
-        const q = questions[currentQIndex];
-        if (!q) return;
-        const latestIdx = q.attempts.length - 1;
-        if (latestIdx < 0) {
-          const draft = document.getElementById('answerInput').value.trim();
-          if (!draft) {
-            alert('아직 작성된 답변이나 생성된 모범답안이 없습니다. 먼저 답변을 작성하고 채점을 진행해 주세요!');
-            return;
-          }
-          let tempContainer = document.getElementById('tempDraftTtsContainer');
-          if (!tempContainer) {
-            tempContainer = document.createElement('div');
-            tempContainer.id = 'tempDraftTtsContainer';
-            tempContainer.className = 'hidden';
-            document.body.appendChild(tempContainer);
-          }
-          const pCount = this.renderInteractiveScript(tempContainer, draft);
-          const cardBtn = document.getElementById('cardAnsSpeakBtn');
-          this.cycleAnswerPlayback(`draft_${currentQIndex}`, tempContainer, [cardBtn], pCount);
-          return;
-        }
-
-        const att = q.attempts[latestIdx];
-        if (att.stage2 && att.stage2.al_model_answer) {
-          const wrapper = document.getElementById('stage2Wrapper');
-          if (wrapper && wrapper.classList.contains('hidden')) {
-            toggleStage2View(true);
-          }
-          const modelContainer = document.getElementById(`modelTtsContainer_${currentQIndex}_${latestIdx}`);
-          const modelBtn = document.getElementById(`modelSpeakBtn_${currentQIndex}_${latestIdx}`);
-          const cardBtn = document.getElementById('cardAnsSpeakBtn');
-          const pCount = modelContainer ? modelContainer.querySelectorAll('.tts-para').length : 1;
-          this.cycleAnswerPlayback(`model_${currentQIndex}_${latestIdx}`, modelContainer, [modelBtn, cardBtn], pCount);
-        } else {
-          const userContainer = document.getElementById(`userTtsContainer_${currentQIndex}_${latestIdx}`);
-          const userBtn = document.getElementById(`userSpeakBtn_${currentQIndex}_${latestIdx}`);
-          const cardBtn = document.getElementById('cardAnsSpeakBtn');
-          const pCount = userContainer ? userContainer.querySelectorAll('.tts-para').length : 1;
-          this.cycleAnswerPlayback(`user_${currentQIndex}_${latestIdx}`, userContainer, [userBtn, cardBtn], pCount);
-        }
       },
 
       cycleAnswerPlayback(targetId, containerEl, btnElements, paraCount) {
@@ -1165,12 +1114,6 @@
           btn.classList.remove('ring-2', 'ring-amber-300', 'bg-amber-600');
         });
 
-        const cardAnsBtn = document.getElementById('cardAnsSpeakBtn');
-        if (cardAnsBtn && (!this.activeButtons.includes(cardAnsBtn) || this.state === 'IDLE')) {
-          const pCnt = cardAnsBtn.getAttribute('data-para-count') || '';
-          cardAnsBtn.innerText = pCnt ? `🔊 답변 전체 듣기 (${pCnt}문단)` : '🔊 답변 전체 듣기';
-        }
-
         if (this.state !== 'IDLE') {
           this.activeButtons.forEach(btn => {
             if (!btn || btn.id === 'qSpeakBtn') return;
@@ -1236,14 +1179,14 @@
       if (jobVal && jobVal !== 'none' && TOPIC_META[jobVal]) userPoolKeys.push(jobVal);
       if (stuVal === 'yes') userPoolKeys.push('student');
 
-      // 설문을 미선택한 상태면 기본 꿀설문 12개 풀 사용
+      // 설문 미선택 시 변경된 꿀설문 기본 풀(영화, 공연, 콘서트, 공원, 술집, 카페, 음악, 조깅, 걷기, 운동안함, 집콕, 국내여행, 해외여행) 사용
       if (userPoolKeys.length < 3) {
-        userPoolKeys = ['movie', 'theater', 'concert', 'park', 'shopping', 'music', 'jogging', 'walking', 'hiking', 'staycation', 'domestic_travel', 'overseas_travel'];
+        userPoolKeys = ['movie', 'theater', 'concert', 'park', 'bar', 'cafe', 'music', 'jogging', 'walking', 'no_exercise', 'staycation', 'domestic_travel', 'overseas_travel'];
       }
 
       const shuffledTopics = shuffleArray(userPoolKeys);
       const topicA = TOPIC_META[shuffledTopics[0]] || TOPIC_META.movie;
-      const topicB = TOPIC_META[shuffledTopics[1]] || TOPIC_META.park;
+      const topicB = TOPIC_META[shuffledTopics[1]] || TOPIC_META.cafe;
       const topicC = TOPIC_META[shuffledTopics[2]] || TOPIC_META.music;
 
       const unexpectedMeta = pickRandom(UNEXPECTED_POOL);
@@ -1447,14 +1390,6 @@
       }
     }
 
-    // [12개 꿀설문 원클릭 세팅]
-    // 1. 직업: 일 경험 없음 (군 복무: 아니요)
-    // 2. 학생: 아니요 (수강 후 5년 이상 지남)
-    // 3. 거주지: 개인주택이나 아파트에 홀로 거주
-    // 4. 여가(5개): 영화보기, 공연보기, 콘서트보기, 공원 가기, 쇼핑하기
-    // 5. 취미(1개): 음악 감상하기
-    // 6. 운동(3개): 조깅, 걷기, 하이킹·트레킹
-    // 7. 휴가/출장(3개): 집에서 보내는 휴가, 국내 여행, 해외 여행
     function applyPopularPreset() {
       const jobRadio = document.querySelector('input[name="q1_job"][value="none"]');
       if (jobRadio) { jobRadio.checked = true; handleJobChange(); }
@@ -1578,12 +1513,6 @@
         document.getElementById('answerInput').value = q.attempts[q.attempts.length - 1].transcript;
       } else {
         document.getElementById('answerInput').value = '';
-      }
-
-      const cardAnsBtn = document.getElementById('cardAnsSpeakBtn');
-      if (cardAnsBtn) {
-        cardAnsBtn.removeAttribute('data-para-count');
-        cardAnsBtn.innerText = '🔊 답변 전체 듣기';
       }
 
       renderAttempts(q.attempts.length - 1);
@@ -2093,21 +2022,23 @@ Return ONLY valid JSON:
           </div>
         </div>
 
-        <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-xs text-slate-700 flex flex-col gap-2">
+        <!-- 내 답변 스크립트 + 하단 듣기 버튼 배치 -->
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs text-slate-700 flex flex-col gap-2.5">
           <div class="flex justify-between items-center flex-wrap gap-2">
             <span class="font-bold text-slate-800">🗣 내 답변 스크립트 (#${item.attemptNum}차):</span>
-            <div class="flex gap-2 no-print">
-              <button onclick="addBookmark('내 답변', '${q.category.replace(/'/g, "")} (#${item.attemptNum}차)', \`${safeTranscript}\`)" class="text-xs bg-amber-500 text-white px-2.5 py-1 rounded-lg hover:bg-amber-400 font-bold shadow-sm">
-                📌 내 답변 북마크 저장
-              </button>
-              <button id="userSpeakBtn_${currentQIndex}_${attemptIdx}"
-                      onclick="triggerUserSpeak(${currentQIndex}, ${attemptIdx})"
-                      class="text-xs bg-slate-700 text-white px-2.5 py-1 rounded-lg hover:bg-slate-600 font-bold shadow-sm">
-                🔊 내 답변 듣기
-              </button>
-            </div>
+            <span class="text-[11px] text-slate-400">1회 클릭(1회) → 2회(무한반복) → 3회(정지)</span>
           </div>
-          <div id="userTtsContainer_${currentQIndex}_${attemptIdx}" class="bg-white p-2.5 rounded-lg border border-slate-200 leading-relaxed"></div>
+          <div id="userTtsContainer_${currentQIndex}_${attemptIdx}" class="bg-white p-3 rounded-lg border border-slate-200 leading-relaxed"></div>
+          <div class="flex justify-end gap-2 pt-1 no-print">
+            <button onclick="addBookmark('내 답변', '${q.category.replace(/'/g, "")} (#${item.attemptNum}차)', \`${safeTranscript}\`)" class="text-xs bg-amber-500 text-white px-3 py-1.5 rounded-lg hover:bg-amber-400 font-bold shadow-sm">
+              📌 내 답변 북마크 저장
+            </button>
+            <button id="userSpeakBtn_${currentQIndex}_${attemptIdx}"
+                    onclick="triggerUserSpeak(${currentQIndex}, ${attemptIdx})"
+                    class="text-xs bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg hover:bg-indigo-500 font-bold shadow-sm transition">
+              🔊 내 답변 듣기
+            </button>
+          </div>
         </div>
 
         <div class="pt-2">
@@ -2134,18 +2065,11 @@ Return ONLY valid JSON:
         const modelContainer = document.getElementById(`modelTtsContainer_${currentQIndex}_${attemptIdx}`);
         const modelParaCount = TTSManager.renderInteractiveScript(modelContainer, item.stage2.al_model_answer);
         const modelBtn = document.getElementById(`modelSpeakBtn_${currentQIndex}_${attemptIdx}`);
-        const cardAnsBtn = document.getElementById('cardAnsSpeakBtn');
         const modelLbl = `🔊 모범답안 다시듣기 (${modelParaCount}문단)`;
-        const cardLbl = `🔊 답변 전체 듣기 (${modelParaCount}문단)`;
         if (modelBtn) {
           modelBtn.innerText = modelLbl;
           modelBtn.setAttribute('data-tts-default-label', modelLbl);
           modelBtn.setAttribute('data-para-count', modelParaCount);
-        }
-        if (cardAnsBtn) {
-          cardAnsBtn.innerText = cardLbl;
-          cardAnsBtn.setAttribute('data-tts-default-label', cardLbl);
-          cardAnsBtn.setAttribute('data-para-count', modelParaCount);
         }
       }
     }
@@ -2153,9 +2077,8 @@ Return ONLY valid JSON:
     function triggerModelSpeak(qIdx, attIdx) {
       const modelContainer = document.getElementById(`modelTtsContainer_${qIdx}_${attIdx}`);
       const modelBtn = document.getElementById(`modelSpeakBtn_${qIdx}_${attIdx}`);
-      const cardBtn = document.getElementById('cardAnsSpeakBtn');
       const pCount = modelContainer ? modelContainer.querySelectorAll('.tts-para').length : 1;
-      TTSManager.cycleAnswerPlayback(`model_${qIdx}_${attIdx}`, modelContainer, [modelBtn, cardBtn], pCount);
+      TTSManager.cycleAnswerPlayback(`model_${qIdx}_${attIdx}`, modelContainer, [modelBtn], pCount);
     }
 
     function triggerUserSpeak(qIdx, attIdx) {
