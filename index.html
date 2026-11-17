@@ -15,7 +15,7 @@
       margin-bottom: 6px;
     }
     .tts-active-para {
-      background-color: #eff6ff !important; /* 파란색 문단 배경 하이라이트 */
+      background-color: #eff6ff !important;
       border-left-color: #2563eb !important;
       box-shadow: 0 1px 4px rgba(37, 99, 235, 0.12);
     }
@@ -25,11 +25,10 @@
       padding: 1px 2px;
     }
     .tts-active-sent {
-      background-color: #bfdbfe !important; /* 진한 파란색 문장 하이라이트 */
+      background-color: #bfdbfe !important;
       color: #1e3a8a !important;
       font-weight: 700;
     }
-    /* 인쇄 시 TTS 관련 UI 요소 전체 숨김 */
     @media print {
       .no-print, #ttsFloatingPanel, .tts-btn-group {
         display: none !important;
@@ -49,9 +48,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
-          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.9.0 (프로 TTS 애드온 & 완전체 리포트)</span>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.9.1 (해석·소요시간 & 쉬운 원어민 이디엄)</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">1,000+ 랜덤 문제은행 → 문장/문단 하이라이트 TTS → 0초 지표 + 강점/약점/ACTFL 2단 채점 → 마이페이지</p>
+        <p class="text-xs text-slate-500 mt-1">1,000+ 랜덤 문제은행 → 자동 초기화 입력창 → 쉬운 단어·원어민 이디엄 AL 모범답안(해석·소요시간) → 3단 루프 TTS</p>
       </div>
       <div class="flex gap-2 flex-wrap no-print">
         <button onclick="goToMypage()" class="text-xs bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg font-bold hover:bg-indigo-500 shadow-sm flex items-center gap-1">
@@ -309,7 +308,6 @@
             </button>
           </div>
         </div>
-        <!-- 질문 스크립트 (문장 단위 하이라이트 지원 컨테이너) -->
         <div id="qTextContainer" class="text-slate-800 font-medium leading-relaxed hidden border-t border-indigo-200/60 pt-3 text-sm"></div>
       </div>
 
@@ -336,7 +334,7 @@
           🔴 실시간 자막 인식 중... 첫 문장에 결론(MP)을 먼저 말씀하세요!
         </p>
 
-        <textarea id="answerInput" rows="5" placeholder="'말하기 시작'을 누르고 영어로 대답하세요. (실시간 자막이 여기에 표시됩니다)"
+        <textarea id="answerInput" rows="5" placeholder="'말하기 시작'을 누르고 영어로 대답하세요. (문항 이동 및 재도전 시 자동으로 깨끗하게 초기화됩니다)"
                   class="w-full border border-slate-300 rounded-xl p-3.5 text-sm focus:outline-indigo-500 leading-relaxed"></textarea>
         
         <div class="grid grid-cols-2 gap-3">
@@ -344,7 +342,7 @@
             ⚡ 초고속 채점 및 MP 피드백
           </button>
           <button onclick="addNewAttempt()" class="w-full bg-amber-600 text-white font-bold py-3.5 rounded-xl hover:bg-amber-500 transition shadow-md text-sm">
-            🔄 이 문제 재도전하기 (재녹음)
+            🔄 이 문제 재도전하기 (즉시 초기화)
           </button>
         </div>
 
@@ -367,13 +365,11 @@
 
   <!-- ==================== 우측 하단 TTS 컨트롤 패널 (접기 가능 & 인쇄 시 숨김) ==================== -->
   <div id="ttsFloatingPanel" class="fixed bottom-4 right-4 z-40 no-print">
-    <!-- 접혔을 때 보이는 미니 버튼 -->
     <button id="ttsPanelCollapsedBtn" onclick="TTSManager.togglePanel(false)" class="hidden bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-xl border border-slate-700 text-xs font-extrabold flex items-center gap-2 hover:bg-slate-800 transition">
       <span>🔊 TTS 컨트롤러</span>
       <span id="ttsMiniStatus" class="w-2 h-2 rounded-full bg-emerald-400"></span>
     </button>
 
-    <!-- 펼쳐졌을 때 보이는 상세 패널 -->
     <div id="ttsPanelExpanded" class="bg-slate-900 text-white w-80 rounded-2xl shadow-2xl border border-slate-700 p-4 space-y-3 text-xs">
       <div class="flex justify-between items-center border-b border-slate-700 pb-2">
         <div class="flex items-center gap-1.5">
@@ -385,7 +381,6 @@
         </button>
       </div>
 
-      <!-- 보이스 선택 (자동 우선순위 적용됨) -->
       <div class="space-y-1">
         <label class="text-[11px] text-slate-400 font-semibold block">🎙️ 원어민 보이스 선택 (Neural 우선 자동선택)</label>
         <select id="ttsVoiceSelect" onchange="TTSManager.changeVoice(this.value)" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-indigo-500">
@@ -393,7 +388,6 @@
         </select>
       </div>
 
-      <!-- 배속 슬라이더 (0.75 ~ 1.15, 기본 1.0) -->
       <div class="space-y-1">
         <div class="flex justify-between text-[11px]">
           <span class="text-slate-400 font-semibold">⚡ 재생 배속 (0.75x ~ 1.15x)</span>
@@ -409,7 +403,6 @@
         </div>
       </div>
 
-      <!-- 재생 제어 버튼 (일시정지/재개, 정지, 비상 호환모드) -->
       <div class="grid grid-cols-3 gap-1.5 pt-1">
         <button id="ttsPauseResumeBtn" onclick="TTSManager.togglePause()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg transition">
           ⏸ 일시정지
@@ -594,9 +587,9 @@
 
     // ==================== 2. 원어민 TTS 애드온 상태머신 (TTSManager) ====================
     const TTSManager = {
-      state: 'IDLE', // 'IDLE' | 'PLAYING_ONCE' | 'PLAYING_LOOP' | 'PAUSED'
-      activeTargetId: null, // 현재 재생 중인 타겟 식별자 ('question' | 'model_q_att' | 'user_q_att')
-      queue: [], // [{ pIdx, sIdx, text, paraEl, sentEl, isLastInPara }]
+      state: 'IDLE',
+      activeTargetId: null,
+      queue: [],
       currentIndex: 0,
       rate: 1.0,
       selectedVoiceURI: '',
@@ -619,7 +612,6 @@
         }
       },
 
-      // 보이스 자동 우선 선택: Edge Neural (Aria/Jenny Online Natural) > Chrome Google US English > OS 기본
       autoSelectBestVoice() {
         if (!this.voices.length) return;
         const scoreVoice = (v) => {
@@ -658,8 +650,7 @@
       changeVoice(uri) {
         this.selectedVoiceURI = uri;
         if (this.state !== 'IDLE') {
-          const idx = this.currentIndex;
-          this.speakCurrentItem(idx);
+          this.speakCurrentItem(this.currentIndex);
         }
       },
 
@@ -693,7 +684,6 @@
         }
       },
 
-      // 텍스트를 문단(Paragraph)과 문장(Sentence) 단위 DOM으로 렌더링하고 반환
       renderInteractiveScript(containerEl, rawText) {
         if (!containerEl) return 0;
         const paragraphs = rawText
@@ -701,7 +691,6 @@
           .map(p => p.trim())
           .filter(Boolean);
 
-        // 만약 줄바꿈이 없는 긴 문단이면 문장 3개씩 묶어 가독성 있는 문단으로 자동 분리
         let finalParas = paragraphs;
         if (paragraphs.length === 1) {
           const allSents = paragraphs[0].match(/[^.!?]+[.!?]+(\s|$)|[^.!?]+$/g) || [paragraphs[0]];
@@ -744,7 +733,6 @@
         return queue;
       },
 
-      // 질문 듣기 (1회 재생 <-> 정지 토글)
       playQuestion() {
         const qContainer = document.getElementById('qTextContainer');
         const qBtn = document.getElementById('qSpeakBtn');
@@ -752,12 +740,10 @@
           this.stop();
           return;
         }
-        // 질문이 숨겨져 있어도 하이라이트를 볼 수 있도록 자동 펼침
         qContainer.classList.remove('hidden');
         this.startQueue('question', qContainer, 'PLAYING_ONCE', [qBtn], 1);
       },
 
-      // 질문 카드 우측의 [답변 전체 듣기] 버튼: 최신 모범답안(없으면 내 답변)을 3단 사이클로 재생
       cycleCardAnswer() {
         const q = questions[currentQIndex];
         if (!q) return;
@@ -768,7 +754,6 @@
             alert('아직 작성된 답변이나 생성된 모범답안이 없습니다. 먼저 답변을 작성하고 채점을 진행해 주세요!');
             return;
           }
-          // 임시 답변 재생
           let tempContainer = document.getElementById('tempDraftTtsContainer');
           if (!tempContainer) {
             tempContainer = document.createElement('div');
@@ -782,12 +767,11 @@
           return;
         }
 
-        // 상세 첨삭의 모범답안이 있으면 펼치고 모범답안 타겟으로 연동
         const att = q.attempts[latestIdx];
         if (att.stage2 && att.stage2.al_model_answer) {
           const wrapper = document.getElementById('stage2Wrapper');
           if (wrapper && wrapper.classList.contains('hidden')) {
-            toggleStage2View();
+            toggleStage2View(true);
           }
           const modelContainer = document.getElementById(`modelTtsContainer_${currentQIndex}_${latestIdx}`);
           const modelBtn = document.getElementById(`modelSpeakBtn_${currentQIndex}_${latestIdx}`);
@@ -803,7 +787,7 @@
         }
       },
 
-      // [핵심] 답변 전체 듣기 3단계 상태머신: 1회 클릭(1회 재생) -> 2회 클릭(무한 반복) -> 3회 클릭(정지)
+      // 1회 클릭 -> 1회 재생 / 2회 클릭 -> 무한 반복 / 3회 클릭 -> 정지
       cycleAnswerPlayback(targetId, containerEl, btnElements, paraCount) {
         if (!containerEl) return;
         if (this.activeTargetId !== targetId || this.state === 'IDLE') {
@@ -836,7 +820,6 @@
       speakCurrentItem(index) {
         if (this.state === 'IDLE' || index >= this.queue.length) {
           if (this.state === 'PLAYING_LOOP' && this.queue.length > 0) {
-            // 무한 반복 모드일 경우 0.4초 쉬고 처음부터 다시 재생
             this.pauseTimer = setTimeout(() => {
               if (this.state === 'PLAYING_LOOP') {
                 this.currentIndex = 0;
@@ -853,7 +836,6 @@
         const item = this.queue[index];
         this.highlightItem(item);
 
-        // 클라우드 호환 폴백 모드일 때
         if (this.useFallback || !('speechSynthesis' in window)) {
           const player = document.getElementById('fallbackAudioPlayer');
           player.pause();
@@ -885,7 +867,6 @@
 
           window.currentUtterance.onerror = (e) => {
             if (e.error === 'canceled' || e.error === 'interrupted') return;
-            // 내장 음성 에러 시 클라우드 폴백으로 자동 전환
             this.useFallback = true;
             this.speakCurrentItem(index);
           };
@@ -894,7 +875,6 @@
         }, 40);
       },
 
-      // 문단 사이에는 숨 고르는 쉼(0.4초 = 400ms) 삽입
       advanceNext(currentItem) {
         const delay = currentItem.isLastInPara ? 400 : 60;
         this.pauseTimer = setTimeout(() => {
@@ -906,9 +886,7 @@
 
       highlightItem(item) {
         this.clearHighlights();
-        if (item.paraEl) {
-          item.paraEl.classList.add('tts-active-para');
-        }
+        if (item.paraEl) item.paraEl.classList.add('tts-active-para');
         if (item.sentEl) {
           item.sentEl.classList.add('tts-active-sent');
           item.sentEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -940,7 +918,6 @@
         if (this.state === 'PAUSED') {
           this.state = this.prevLoopState || 'PLAYING_ONCE';
           synth.resume();
-          // 크롬에서 resume이 먹통일 경우 현재 문장 재발화
           if (!synth.speaking) this.speakCurrentItem(this.currentIndex);
         } else {
           this.prevLoopState = this.state;
@@ -988,14 +965,12 @@
           pauseBtn.innerText = this.state === 'PAUSED' ? '▶ 다시재생' : '⏸ 일시정지';
         }
 
-        // 질문 듣기 버튼 복원
         if (qBtn) {
           qBtn.innerText = (this.activeTargetId === 'question' && this.state !== 'IDLE')
             ? '⏹ 질문 정지'
             : '🔊 질문 듣기';
         }
 
-        // 모든 답변 전체 듣기 버튼 기본 라벨 복구 후 활성 버튼만 상태 표시
         document.querySelectorAll('[data-tts-default-label]').forEach(btn => {
           btn.innerText = btn.getAttribute('data-tts-default-label');
           btn.classList.remove('ring-2', 'ring-amber-300', 'bg-amber-600');
@@ -1012,9 +987,9 @@
             if (!btn || btn.id === 'qSpeakBtn') return;
             const pCnt = btn.getAttribute('data-para-count') || this.paraCount || 1;
             if (this.state === 'PLAYING_ONCE') {
-              btn.innerText = `🔊 1회 재생 중 (${pCnt}문단) · 한 번 더 누르면 무한반복`;
+              btn.innerText = `🔊 1회 재생 중 (${pCnt}문단) · 다시 누르면 무한반복`;
             } else if (this.state === 'PLAYING_LOOP') {
-              btn.innerText = `🔁 무한 반복 중 (${pCnt}문단) · 한 번 더 누르면 정지`;
+              btn.innerText = `🔁 무한 반복 중 (${pCnt}문단) · 다시 누르면 정지`;
               btn.classList.add('ring-2', 'ring-amber-300');
             } else if (this.state === 'PAUSED') {
               btn.innerText = `⏸ 일시정지됨 (${pCnt}문단)`;
@@ -1029,6 +1004,7 @@
     let currentQIndex = 0;
     let recognition = null;
     let isRecording = false;
+    let finalTranscriptCache = ''; // 음성 인식 누적 버퍼 전역 관리 (문항 이동/재도전 시 확실히 비움)
     let timerInterval = null;
     let secondsElapsed = 0;
     let loadingTimer = null;
@@ -1300,6 +1276,7 @@
     function resetToSurvey() {
       if (isRecording) toggleRecording();
       TTSManager.stop();
+      clearAnswer();
       document.getElementById('testSection').classList.add('hidden');
       document.getElementById('backToSurveyBtn').classList.add('hidden');
       document.getElementById('reShuffleBtn').classList.add('hidden');
@@ -1358,8 +1335,21 @@
       TTSManager.renderInteractiveScript(qTextContainer, q.text);
       qTextContainer.classList.add('hidden');
 
-      const latestTranscript = q.attempts.length > 0 ? q.attempts[q.attempts.length - 1].transcript : '';
-      document.getElementById('answerInput').value = latestTranscript;
+      // [개선] 다음 문항으로 넘어갔을 때 답변 기록란과 음성 인식 버퍼를 깔끔하게 초기화!
+      // (이미 채점 완료한 문항을 다시 눌러서 복습할 때만 이전 기록 표시, 새 문항은 무조건 빈 칸으로 시작)
+      finalTranscriptCache = '';
+      if (q.attempts.length > 0) {
+        document.getElementById('answerInput').value = q.attempts[q.attempts.length - 1].transcript;
+      } else {
+        document.getElementById('answerInput').value = '';
+      }
+
+      // 상단 답변 전체 듣기 버튼 라벨 초기화
+      const cardAnsBtn = document.getElementById('cardAnsSpeakBtn');
+      if (cardAnsBtn) {
+        cardAnsBtn.removeAttribute('data-para-count');
+        cardAnsBtn.innerText = '🔊 답변 전체 듣기';
+      }
 
       renderAttempts(q.attempts.length - 1);
     }
@@ -1368,7 +1358,9 @@
       document.getElementById('qTextContainer').classList.toggle('hidden');
     }
 
+    // 입력창 + 음성인식 버퍼 + 타이머 완전 초기화
     function clearAnswer() {
+      finalTranscriptCache = '';
       document.getElementById('answerInput').value = '';
       resetTimer();
     }
@@ -1421,8 +1413,6 @@
       recognition.continuous = true;
       recognition.interimResults = true;
 
-      let finalTranscriptCache = '';
-
       recognition.onresult = (event) => {
         let interimTranscript = '';
         let finalTranscript = finalTranscriptCache;
@@ -1454,6 +1444,10 @@
 
       if (!isRecording) {
         TTSManager.stop();
+        // 사용자가 입력창에 수동으로 적어둔 글이 있다면 이어서 녹음되도록 동기화
+        const currentVal = document.getElementById('answerInput').value.trim();
+        finalTranscriptCache = currentVal ? currentVal + ' ' : '';
+
         isRecording = true;
         recognition.start();
         startTimer();
@@ -1470,11 +1464,25 @@
       }
     }
 
+    // [개선] 이 문제 재도전하기 클릭 시 입력창 + 음성인식 버퍼 + 타이머 즉시 초기화!
     function addNewAttempt() {
+      if (isRecording) toggleRecording();
       TTSManager.stop();
-      document.getElementById('answerInput').value = '';
-      resetTimer();
-      alert('새로운 회차 녹음을 시작합니다! 첫 문장에 MP(결론)를 넣고 답변해 보세요.');
+      clearAnswer();
+      const inputEl = document.getElementById('answerInput');
+      inputEl.focus();
+      inputEl.placeholder = "초기화되었습니다! 첫 문장에 핵심 결론(MP)을 먼저 넣고 새로 답변해 보세요.";
+    }
+
+    // 발화 예상 소요시간 포맷 계산기 (원어민 평균 130 WPM 기준)
+    function estimateSpeakingDuration(text) {
+      const words = (text || '').trim().split(/\s+/).filter(Boolean);
+      const wordCount = words.length;
+      const totalSec = Math.max(10, Math.round((wordCount / 130) * 60));
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      const timeStr = mins > 0 ? `약 ${mins}분 ${secs}초` : `약 ${secs}초`;
+      return { wordCount, timeStr };
     }
 
     async function callGeminiRetry(promptText, maxTokens = 1500, retries = 3, delay = 2000) {
@@ -1558,7 +1566,6 @@
       return { wordCount, wpm, fillerCount, ttr, keywordIncluded };
     }
 
-    // [1단 + 2단 비동기 채점: 강점/약점 & ACTFL 4대 영역 & 중고교 어휘 AL 모범답안]
     async function evaluateAnswer() {
       const transcript = document.getElementById('answerInput').value.trim();
       if (!transcript) return alert('먼저 답변을 말씀하시거나 입력란에 적어주세요!');
@@ -1619,10 +1626,13 @@ Return ONLY valid JSON for Stage 1:
 Question: ${qObj.text}
 User Answer: ${transcript}
 
-Requirements for "al_model_answer":
-1. MUST achieve ACTFL 'AL (Advanced Low)' level through logical flow, vivid details, natural connectors, and rich storytelling.
-2. VOCABULARY RULE: Use ONLY easy, natural middle/high-school level English words and everyday phrasal verbs. NEVER use stiff, academic, or overly difficult C1/C2 vocabulary.
-3. STRUCTURE RULE: MUST place the Main Point (MP / direct conclusion) in the VERY FIRST sentence. Organize into 3 clear paragraphs separated by "\\n\\n" (Paragraph 1: MP & overview, Paragraph 2: specific details/episode, Paragraph 3: feelings & wrap-up).
+CRITICAL RULES for "al_model_answer" & "al_model_translation":
+1. AL LEVEL QUALITY: Must achieve ACTFL 'AL (Advanced Low)' level through vivid storytelling, clear logic, natural connectors, and rich specific details (aim for around 140~180 words so it takes about 1 min 10 sec ~ 1 min 25 sec to speak).
+2. SUPER EASY VOCABULARY: Use ONLY basic, super-easy middle-school level English words (A1-B1). NEVER use difficult, formal, or SAT/TOEFL words (NO words like 'unwind', 'rejuvenate', 'picturesque', 'bustling', 'moreover', 'furthermore').
+3. NATURAL NATIVE IDIOMS: Instead of hard words, include 4-5 super common everyday native idioms and phrasal verbs that native speakers say every day (e.g., "hang out", "chill out", "grab a bite", "out of the blue", "a piece of cake", "call it a day", "feel like a million bucks", "to be honest", "you know what").
+4. FIRST SENTENCE MP: MUST place the Main Point (direct answer/conclusion) in the VERY FIRST sentence.
+5. 3 PARAGRAPHS: Organize into 3 clear paragraphs separated by "\\n\\n" (Paragraph 1: MP & overview, Paragraph 2: specific details/story, Paragraph 3: feelings & wrap-up).
+6. TRANSLATION: Provide a natural, smooth Korean translation in "al_model_translation" matching the 3 paragraphs separated by "\\n\\n".
 
 Return ONLY valid JSON:
 {
@@ -1634,11 +1644,12 @@ Return ONLY valid JSON:
   },
   "grammar_corrections": ["원문 표현 -> 교정 표현 : 이유 설명 1", "원문 표현 -> 교정 표현 : 이유 설명 2"],
   "al_upgrade_points": ["첫 문장 MP 강화 및 스토리텔링 업그레이드 팁 1", "업그레이드 팁 2"],
-  "al_model_answer": "Paragraph 1 (Starts with MP)...\\n\\nParagraph 2 (Details)...\\n\\nParagraph 3 (Wrap-up)..."
+  "al_model_answer": "Paragraph 1 (Starts with MP, easy words + native idioms)...\\n\\nParagraph 2 (Details)...\\n\\nParagraph 3 (Wrap-up)...",
+  "al_model_translation": "1문단 자연스러운 한국어 해석...\\n\\n2문단 자연스러운 한국어 해석...\\n\\n3문단 자연스러운 한국어 해석..."
 }`;
 
       try {
-        const stage2Json = await callGeminiRetry(promptStage2, 1500);
+        const stage2Json = await callGeminiRetry(promptStage2, 1800);
         qObj.attempts[attemptIdx].stage2 = stage2Json;
         qObj.attempts[attemptIdx].isStage2Loading = false;
         
@@ -1698,7 +1709,18 @@ Return ONLY valid JSON:
           accuracy: { score: "중", feedback: "-" },
           text_type: { score: "중", feedback: "-" }
         };
-        const safeModelAnswer = (s2.al_model_answer || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/`/g, '\\`');
+        const modelText = s2.al_model_answer || '';
+        const modelTrans = s2.al_model_translation || '';
+        const durationInfo = estimateSpeakingDuration(modelText);
+
+        const bookmarkPayload = modelTrans
+          ? `${modelText}\n\n[한국어 해석]\n${modelTrans}`
+          : modelText;
+        const safeBookmarkPayload = bookmarkPayload.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/`/g, '\\`');
+
+        const formattedTranslationHtml = modelTrans
+          ? modelTrans.split(/\n+/).filter(Boolean).map(p => `<p class="mb-1.5 last:mb-0">${p}</p>`).join('')
+          : '<p class="text-slate-400">해석 정보가 포함되지 않았습니다.</p>';
 
         stage2Html = `
           <div id="stage2Details" class="space-y-4 pt-4 border-t border-slate-200 animate-fadeIn">
@@ -1740,36 +1762,53 @@ Return ONLY valid JSON:
               <div class="font-bold text-amber-900 text-sm mb-2">🚀 문법 교정 및 AL 점프 업그레이드 포인트</div>
               <ul class="list-disc pl-5 space-y-1 text-amber-800 text-xs leading-relaxed">
                 ${(s2.grammar_corrections || []).map(pt => `<li><b>[문법 교정]</b> ${pt}</li>`).join('')}
-                ${(s2.al_upgrade_points || []).map(pt => `<li><b>[MP/스토리 전략]</b> ${pt}</li>`).join('')}
+                ${(s2.al_upgrade_points || []).map(pt => `<li><b>[MP/이디엄 전략]</b> ${pt}</li>`).join('')}
               </ul>
             </div>
 
-            <!-- 중-고교 수준 쉬운 어휘 + 첫 문장 MP 선제시 AL 모범답안 -->
-            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-2">
-              <div class="flex justify-between items-center flex-wrap gap-2">
-                <div>
-                  <div class="font-bold text-emerald-900 text-sm">✨ 첫 문장 MP 선제시 AL 모범 스크립트 (중·고교 핵심 어휘 버전)</div>
-                  <p class="text-[11px] text-emerald-700">1번 클릭: 1회 재생 | 2번 클릭: 무한 반복 | 3번 클릭: 정지 (문단 사이 0.4초 호흡)</p>
+            <!-- 쉬운 어휘 + 원어민 이디엄 + 첫 문장 MP AL 모범답안 + 소요시간 + 한국어 해석 -->
+            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl space-y-3">
+              <div class="flex justify-between items-start sm:items-center flex-wrap gap-2">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-emerald-950 text-sm">✨ 첫 문장 MP 선제시 AL 모범 스크립트</span>
+                    <span class="bg-emerald-600 text-white text-[11px] font-extrabold px-2.5 py-0.5 rounded-full shadow-sm">
+                      ⏱️ 예상 발화 소요시간: ${durationInfo.timeStr} (${durationInfo.wordCount}단어)
+                    </span>
+                  </div>
+                  <p class="text-[11px] text-emerald-700">중학교 필수 단어 + 원어민 일상 이디엄 조합 | 다시듣기: 1회 클릭(1회) → 2회(무한반복) → 3회(정지)</p>
                 </div>
                 <div class="flex gap-2 no-print">
-                  <button onclick="addBookmark('모범답안', '${q.category.replace(/'/g, "")}', \`${safeModelAnswer}\`)" class="text-xs bg-amber-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-amber-400 font-bold shadow-sm">
+                  <button onclick="addBookmark('모범답안+해석', '${q.category.replace(/'/g, "")}', \`${safeBookmarkPayload}\`)" class="text-xs bg-amber-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-amber-400 font-bold shadow-sm">
                     📌 북마크에 저장
                   </button>
                   <button id="modelSpeakBtn_${currentQIndex}_${attemptIdx}" 
                           onclick="triggerModelSpeak(${currentQIndex}, ${attemptIdx})" 
                           class="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-500 font-bold shadow-sm transition">
-                    🔊 답변 전체 듣기
+                    🔊 모범답안 다시듣기
                   </button>
                 </div>
               </div>
-              <div id="modelTtsContainer_${currentQIndex}_${attemptIdx}" class="text-emerald-950 text-xs leading-relaxed bg-white/80 p-3 rounded-lg border border-emerald-200"></div>
+
+              <!-- 영어 모범 스크립트 (문단/문장 TTS 하이라이트 컨테이너) -->
+              <div id="modelTtsContainer_${currentQIndex}_${attemptIdx}" class="text-emerald-950 text-xs leading-relaxed bg-white p-3.5 rounded-xl border border-emerald-200 shadow-sm"></div>
+
+              <!-- 한국어 해석 박스 -->
+              <div class="bg-emerald-100/60 border border-emerald-200/80 p-3.5 rounded-xl space-y-1.5">
+                <div class="text-[11px] font-extrabold text-emerald-900 flex items-center gap-1">
+                  <span>🇰🇷 한국어 해석 (자연스러운 의역 및 흐름 파악)</span>
+                </div>
+                <div class="text-xs text-slate-700 leading-relaxed">
+                  ${formattedTranslationHtml}
+                </div>
+              </div>
             </div>
           </div>
         `;
       } else if (item.isStage2Loading) {
         stage2Html = `
           <div id="stage2Details" class="pt-4 border-t border-slate-200 text-center text-xs text-indigo-600 font-semibold animate-pulse">
-            ⏳ 백그라운드에서 ACTFL 4대 영역 평가와 중·고교 어휘 기반 AL 모범답안을 생성 중입니다... 잠시만 기다려 주세요!
+            ⏳ 백그라운드에서 ACTFL 4대 영역 평가와 쉬운 어휘·원어민 이디엄 AL 모범답안(해석 포함)을 생성 중입니다...
           </div>
         `;
       }
@@ -1779,7 +1818,6 @@ Return ONLY valid JSON:
       document.getElementById('feedbackContent').innerHTML = `
         ${comparisonHtml}
         
-        <!-- [1단] 점수 + 총평 코멘트 -->
         <div class="bg-slate-900 text-white p-5 rounded-xl flex items-center justify-between gap-4">
           <div class="space-y-1">
             <span class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">#${item.attemptNum}차 시도 [1단 핵심 리포트] (목표: ${targetGrade})</span>
@@ -1791,7 +1829,6 @@ Return ONLY valid JSON:
           </div>
         </div>
 
-        <!-- [강점 / 약점 박스] -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
           <div class="bg-emerald-50/70 border border-emerald-200 p-4 rounded-xl space-y-1.5">
             <div class="font-extrabold text-emerald-900 text-sm">👍 강점 (Strengths)</div>
@@ -1807,7 +1844,6 @@ Return ONLY valid JSON:
           </div>
         </div>
 
-        <!-- 0초 Deterministic 지표 카드 -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-2 text-center text-xs">
           <div class="bg-slate-50 border p-2.5 rounded-xl">
             <div class="text-slate-400">답변 길이</div>
@@ -1831,7 +1867,6 @@ Return ONLY valid JSON:
           </div>
         </div>
 
-        <!-- 내 답변 스크립트 (하이라이트 TTS 재생 지원) -->
         <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-xs text-slate-700 flex flex-col gap-2">
           <div class="flex justify-between items-center flex-wrap gap-2">
             <span class="font-bold text-slate-800">🗣 내 답변 스크립트 (#${item.attemptNum}차):</span>
@@ -1849,10 +1884,9 @@ Return ONLY valid JSON:
           <div id="userTtsContainer_${currentQIndex}_${attemptIdx}" class="bg-white p-2.5 rounded-lg border border-slate-200 leading-relaxed"></div>
         </div>
 
-        <!-- 2단 상세 첨삭 토글 -->
         <div class="pt-2">
           <button onclick="toggleStage2View()" id="stage2ToggleBtn" class="w-full bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs hover:bg-slate-300 transition no-print">
-            🔍 상세 첨삭 보기 (ACTFL 4대 영역 · 문법 교정 · AL 모범 답안 열기) ▼
+            🔍 상세 첨삭 보기 (ACTFL 4대 영역 · 문법 교정 · AL 모범 답안 및 해석 열기) ▼
           </button>
           <div id="stage2Wrapper" class="hidden">
             ${stage2Html}
@@ -1860,7 +1894,6 @@ Return ONLY valid JSON:
         </div>
       `;
 
-      // 내 답변 및 모범답안 문단/문장 인터랙티브 DOM 생성 및 문단 수 표시
       const userContainer = document.getElementById(`userTtsContainer_${currentQIndex}_${attemptIdx}`);
       const userParaCount = TTSManager.renderInteractiveScript(userContainer, item.transcript);
       const userBtn = document.getElementById(`userSpeakBtn_${currentQIndex}_${attemptIdx}`);
@@ -1876,15 +1909,16 @@ Return ONLY valid JSON:
         const modelParaCount = TTSManager.renderInteractiveScript(modelContainer, item.stage2.al_model_answer);
         const modelBtn = document.getElementById(`modelSpeakBtn_${currentQIndex}_${attemptIdx}`);
         const cardAnsBtn = document.getElementById('cardAnsSpeakBtn');
-        const lbl = `🔊 답변 전체 듣기 (${modelParaCount}문단)`;
+        const modelLbl = `🔊 모범답안 다시듣기 (${modelParaCount}문단)`;
+        const cardLbl = `🔊 답변 전체 듣기 (${modelParaCount}문단)`;
         if (modelBtn) {
-          modelBtn.innerText = lbl;
-          modelBtn.setAttribute('data-tts-default-label', lbl);
+          modelBtn.innerText = modelLbl;
+          modelBtn.setAttribute('data-tts-default-label', modelLbl);
           modelBtn.setAttribute('data-para-count', modelParaCount);
         }
         if (cardAnsBtn) {
-          cardAnsBtn.innerText = lbl;
-          cardAnsBtn.setAttribute('data-tts-default-label', lbl);
+          cardAnsBtn.innerText = cardLbl;
+          cardAnsBtn.setAttribute('data-tts-default-label', cardLbl);
           cardAnsBtn.setAttribute('data-para-count', modelParaCount);
         }
       }
@@ -1914,7 +1948,7 @@ Return ONLY valid JSON:
         btn.innerText = '🔍 상세 첨삭 접기 ▲';
       } else {
         wrapper.classList.add('hidden');
-        btn.innerText = '🔍 상세 첨삭 보기 (ACTFL 4대 영역 · 문법 교정 · AL 모범 답안 열기) ▼';
+        btn.innerText = '🔍 상세 첨삭 보기 (ACTFL 4대 영역 · 문법 교정 · AL 모범 답안 및 해석 열기) ▼';
       }
     }
   </script>
