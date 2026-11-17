@@ -48,9 +48,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-2xl font-extrabold text-indigo-700">🎯 미리오픽 (MiriOPIc)</h1>
-          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.9.3 (UI 동선 및 꿀설문 최적화)</span>
+          <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-0.5 rounded-full">v0.9.4 (API 3.8-flash 복구 & 음성 기본 접기)</span>
         </div>
-        <p class="text-xs text-slate-500 mt-1">실제 OPIc 설문(술집·카페/비운동 꿀세팅) → 1,000+ 랜덤 문제은행 → 쉬운 어휘 AL 모범답안(해석·소요시간) → 음성 하이라이트</p>
+        <p class="text-xs text-slate-500 mt-1">실제 OPIc 설문 → 1,000+ 랜덤 문제은행 → Gemini 3.8 Flash 초고속 2단 채점 → 쉬운 어휘 AL 모범답안</p>
       </div>
       <div class="flex gap-2 flex-wrap no-print">
         <button onclick="goToMypage()" class="text-xs bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg font-bold hover:bg-indigo-500 shadow-sm flex items-center gap-1">
@@ -118,7 +118,7 @@
         <div class="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden p-0.5 border">
           <div id="progressBar" class="bg-indigo-600 h-full rounded-full transition-all duration-200 w-[60%] animate-pulse"></div>
         </div>
-        <div id="loadingStep" class="text-[11px] font-semibold text-indigo-600">Thinking Budget 0 / 초고속 응답 생성 중...</div>
+        <div id="loadingStep" class="text-[11px] font-semibold text-indigo-600">Gemini 3.8 Flash 초고속 응답 생성 중...</div>
       </div>
     </div>
 
@@ -376,7 +376,7 @@
         <div class="flex gap-1.5 flex-wrap" id="navTabs"></div>
       </div>
 
-      <!-- 문제 카드 (질문 듣기와 질문 텍스트 보기만 깔끔하게 유지) -->
+      <!-- 문제 카드 -->
       <div class="bg-indigo-50/70 border border-indigo-100 p-5 rounded-xl space-y-4">
         <div class="flex justify-between items-center flex-wrap gap-2">
           <span id="qCategory" class="text-xs font-extrabold uppercase tracking-wider bg-indigo-200 text-indigo-900 px-3 py-1 rounded-full"></span>
@@ -444,14 +444,16 @@
     </div>
   </div>
 
-  <!-- ==================== 우측 하단 음성 컨트롤 패널 (접기 가능 & 인쇄 시 숨김) ==================== -->
+  <!-- ==================== 우측 하단 음성 컨트롤 패널 (기본 상태: 접힘 / 인쇄 시 숨김) ==================== -->
   <div id="ttsFloatingPanel" class="fixed bottom-4 right-4 z-40 no-print">
-    <button id="ttsPanelCollapsedBtn" onclick="TTSManager.togglePanel(false)" class="hidden bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-xl border border-slate-700 text-xs font-extrabold flex items-center gap-2 hover:bg-slate-800 transition">
+    <!-- 기본으로 보이는 접힌 미니 버튼 -->
+    <button id="ttsPanelCollapsedBtn" onclick="TTSManager.togglePanel(false)" class="bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-xl border border-slate-700 text-xs font-extrabold flex items-center gap-2 hover:bg-slate-800 transition">
       <span>🔊 음성</span>
       <span id="ttsMiniStatus" class="w-2 h-2 rounded-full bg-emerald-400"></span>
     </button>
 
-    <div id="ttsPanelExpanded" class="bg-slate-900 text-white w-80 rounded-2xl shadow-2xl border border-slate-700 p-4 space-y-3 text-xs">
+    <!-- 클릭 시 펼쳐지는 상세 패널 (기본 hidden) -->
+    <div id="ttsPanelExpanded" class="hidden bg-slate-900 text-white w-80 rounded-2xl shadow-2xl border border-slate-700 p-4 space-y-3 text-xs">
       <div class="flex justify-between items-center border-b border-slate-700 pb-2">
         <div class="flex items-center gap-1.5">
           <span class="font-extrabold text-indigo-300">🎛️ 음성 설정</span>
@@ -500,7 +502,6 @@
 
   <script>
     // ==================== 1. 실제 OPIc 전체 Background Survey DB (75+ 항목) ====================
-    // 꿀추천 변경 반영: 쇼핑하기 제거 -> 술집/바, 카페 추가 / 하이킹 제거 -> 운동을 전혀 하지 않음 추가
     const SURVEY_DB = {
       leisure: [
         { label: "영화보기", val: "movie", rec: true },
@@ -1179,7 +1180,6 @@
       if (jobVal && jobVal !== 'none' && TOPIC_META[jobVal]) userPoolKeys.push(jobVal);
       if (stuVal === 'yes') userPoolKeys.push('student');
 
-      // 설문 미선택 시 변경된 꿀설문 기본 풀(영화, 공연, 콘서트, 공원, 술집, 카페, 음악, 조깅, 걷기, 운동안함, 집콕, 국내여행, 해외여행) 사용
       if (userPoolKeys.length < 3) {
         userPoolKeys = ['movie', 'theater', 'concert', 'park', 'bar', 'cafe', 'music', 'jogging', 'walking', 'no_exercise', 'staycation', 'domestic_travel', 'overseas_travel'];
       }
@@ -1645,6 +1645,7 @@
       return { wordCount, timeStr };
     }
 
+    // [중요 패치] 모델명을 최신 gemini-3.8-flash로 복원하여 유료 키 정상 호출
     async function callGeminiRetry(promptText, maxTokens = 1500, retries = 3, delay = 2000) {
       if (apiCache[promptText]) return apiCache[promptText];
 
@@ -1660,7 +1661,7 @@
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 45000);
 
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
