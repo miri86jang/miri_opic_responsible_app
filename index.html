@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>미리오픽 (MiriOPIc) - OPIc AL 실전 모의고사 튜터</title>
+  <link rel="apple-touch-icon" href="/icon.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* ==================== 음성(TTS) 애드온 전용 스타일 ==================== */
@@ -55,7 +56,7 @@
           <h1 class="text-2xl sm:text-3xl font-black text-indigo-700 tracking-tight">
             🎯 미리오픽 (MiriOPIc)
           </h1>
-          <span class="bg-indigo-100 text-indigo-800 text-[11px] font-extrabold px-2 py-0.5 rounded-full self-center">v0.9.9</span>
+          <span class="bg-indigo-100 text-indigo-800 text-[11px] font-extrabold px-2 py-0.5 rounded-full self-center">v1.0.0</span>
         </div>
         <p class="text-xs font-medium text-slate-500">Gemini-3.8-flash 사용</p>
         <div class="flex items-center gap-2 flex-wrap pt-0.5 no-print">
@@ -284,7 +285,7 @@
         </div>
       </div>
 
-      <!-- 여가/취미/운동/휴가 4~7 (중복 완벽 제거) -->
+      <!-- 여가/취미/운동/휴가 4~7 -->
       <div class="space-y-4">
         <div class="sticky top-2 z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 text-white p-3.5 rounded-xl shadow-md gap-2">
           <div>
@@ -517,7 +518,6 @@
   <script>
     // ==================== 1. 실제 OPIc 공식 Background Survey DB (4번·5번 중복 완전 제거) ====================
     const SURVEY_DB = {
-      // 4. 여가 활동: 외부 활동, 관람, 사교, 미디어 시청 중심
       leisure: [
         { label: "영화보기", val: "movie", rec: false },
         { label: "공연보기", val: "theater", rec: true },
@@ -542,7 +542,6 @@
         { label: "쇼핑하기", val: "shopping", rec: false },
         { label: "차 운전하기", val: "driving", rec: false }
       ],
-      // 5. 취미나 관심사: 개인 취미, 창작, 실내 활동 중심
       hobbies: [
         { label: "아이에게 책 읽어주기", val: "read_to_kids", rec: false },
         { label: "음악 감상하기", val: "music", rec: true },
@@ -565,7 +564,6 @@
         { label: "사진 촬영하기", val: "photo", rec: false },
         { label: "집 꾸미기", val: "interior", rec: false }
       ],
-      // 6. 운동
       sports: [
         { label: "농구", val: "basketball", rec: false },
         { label: "야구·소프트볼", val: "baseball", rec: false },
@@ -591,7 +589,6 @@
         { label: "헬스", val: "gym", rec: false },
         { label: "운동을 전혀 하지 않음", val: "no_exercise", rec: true }
       ],
-      // 7. 휴가나 출장
       vacation: [
         { label: "국내 출장", val: "domestic_biz_trip", rec: false },
         { label: "해외 출장", val: "overseas_biz_trip", rec: false },
