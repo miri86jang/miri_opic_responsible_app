@@ -55,7 +55,7 @@
           <h1 class="text-2xl sm:text-3xl font-black text-indigo-700 tracking-tight">
             🎯 미리오픽 (MiriOPIc)
           </h1>
-          <span class="bg-indigo-100 text-indigo-800 text-[11px] font-extrabold px-2 py-0.5 rounded-full self-center">v0.9.8</span>
+          <span class="bg-indigo-100 text-indigo-800 text-[11px] font-extrabold px-2 py-0.5 rounded-full self-center">v0.9.9</span>
         </div>
         <p class="text-xs font-medium text-slate-500">Gemini-3.8-flash 사용</p>
         <div class="flex items-center gap-2 flex-wrap pt-0.5 no-print">
@@ -284,7 +284,7 @@
         </div>
       </div>
 
-      <!-- 여가/취미/운동/휴가 4~7 -->
+      <!-- 여가/취미/운동/휴가 4~7 (중복 완벽 제거) -->
       <div class="space-y-4">
         <div class="sticky top-2 z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 text-white p-3.5 rounded-xl shadow-md gap-2">
           <div>
@@ -302,7 +302,7 @@
         <!-- 4. 여가 활동 -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
           <div class="flex justify-between items-center mb-2.5">
-            <div class="text-xs font-extrabold text-indigo-800">🎬 4. 여가 활동 <span class="text-slate-500 font-normal">(두 개 이상 선택 - 가장 많은 문제가 출제되는 핵심 영역)</span></div>
+            <div class="text-xs font-extrabold text-indigo-800">🎬 4. 여가 활동 <span class="text-slate-500 font-normal">(두 개 이상 선택 - 외부 활동·관람·사교 중심)</span></div>
             <span id="cnt_leisure" class="text-[11px] font-bold text-indigo-600">0개 선택</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs" id="list_leisure"></div>
@@ -311,7 +311,7 @@
         <!-- 5. 취미나 관심사 -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
           <div class="flex justify-between items-center mb-2.5">
-            <div class="text-xs font-extrabold text-indigo-800">🎧 5. 취미나 관심사 <span class="text-slate-500 font-normal">(한 개 이상 선택)</span></div>
+            <div class="text-xs font-extrabold text-indigo-800">🎧 5. 취미나 관심사 <span class="text-slate-500 font-normal">(한 개 이상 선택 - 개인 취미·창작·실내 활동)</span></div>
             <span id="cnt_hobbies" class="text-[11px] font-bold text-indigo-600">0개 선택</span>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs" id="list_hobbies"></div>
@@ -515,8 +515,9 @@
   </div>
 
   <script>
-    // ==================== 1. 실제 OPIc 전체 Background Survey DB ====================
+    // ==================== 1. 실제 OPIc 공식 Background Survey DB (4번·5번 중복 완전 제거) ====================
     const SURVEY_DB = {
+      // 4. 여가 활동: 외부 활동, 관람, 사교, 미디어 시청 중심
       leisure: [
         { label: "영화보기", val: "movie", rec: false },
         { label: "공연보기", val: "theater", rec: true },
@@ -529,20 +530,6 @@
         { label: "주거 개선", val: "home_improvement", rec: false },
         { label: "술집/바에 가기", val: "bar", rec: true },
         { label: "카페/커피전문점 가기", val: "cafe", rec: true },
-        { label: "게임하기(비디오·카드·보드·폰)", val: "game", rec: false },
-        { label: "당구 치기", val: "billiards", rec: false },
-        { label: "체스 하기", val: "chess", rec: false },
-        { label: "글쓰기(편지·단편·시 등)", val: "writing", rec: false },
-        { label: "그림 그리기", val: "drawing", rec: false },
-        { label: "요리하기", val: "cooking", rec: false },
-        { label: "애완동물 기르기", val: "pet", rec: false },
-        { label: "원예(가드닝)", val: "gardening", rec: false },
-        { label: "독서", val: "reading", rec: false },
-        { label: "아이에게 책 읽어주기", val: "read_to_kids", rec: false },
-        { label: "음악 감상하기", val: "music_leisure", rec: false },
-        { label: "악기 연주하기", val: "instrument", rec: false },
-        { label: "혼자 노래 부르거나 합창하기", val: "singing", rec: false },
-        { label: "춤추기", val: "dancing", rec: false },
         { label: "텔레비전 시청하기", val: "tv", rec: false },
         { label: "리얼리티 쇼 시청하기", val: "reality_tv", rec: false },
         { label: "뉴스 시청하거나 읽기", val: "news", rec: false },
@@ -550,27 +537,27 @@
         { label: "친구들과 문자 대화하기", val: "texting", rec: false },
         { label: "시험 대비 과정 수강하기", val: "test_prep", rec: false },
         { label: "구직활동하기", val: "job_hunting", rec: false },
-        { label: "주식 투자하기", val: "stock", rec: false },
         { label: "자원봉사하기", val: "volunteering", rec: false },
         { label: "종교 활동하기", val: "religion", rec: false },
         { label: "쇼핑하기", val: "shopping", rec: false },
         { label: "차 운전하기", val: "driving", rec: false }
       ],
+      // 5. 취미나 관심사: 개인 취미, 창작, 실내 활동 중심
       hobbies: [
         { label: "아이에게 책 읽어주기", val: "read_to_kids", rec: false },
         { label: "음악 감상하기", val: "music", rec: true },
         { label: "악기 연주하기", val: "instrument", rec: false },
         { label: "혼자 노래 부르거나 합창하기", val: "singing", rec: false },
         { label: "춤추기", val: "dancing", rec: false },
-        { label: "글쓰기", val: "writing", rec: false },
+        { label: "글쓰기(편지·단편·시)", val: "writing", rec: false },
         { label: "그림 그리기", val: "drawing", rec: false },
         { label: "요리하기", val: "cooking", rec: false },
         { label: "애완동물 기르기", val: "pet", rec: false },
         { label: "독서", val: "reading", rec: false },
         { label: "주식 투자하기", val: "stock", rec: false },
         { label: "신문 읽기", val: "newspaper", rec: false },
-        { label: "원예", val: "gardening", rec: false },
-        { label: "게임하기", val: "game", rec: false },
+        { label: "원예(가드닝)", val: "gardening", rec: false },
+        { label: "게임하기(비디오·카드·보드·폰)", val: "game", rec: false },
         { label: "당구 치기", val: "billiards", rec: false },
         { label: "체스 하기", val: "chess", rec: false },
         { label: "수집하기", val: "collecting", rec: false },
@@ -578,6 +565,7 @@
         { label: "사진 촬영하기", val: "photo", rec: false },
         { label: "집 꾸미기", val: "interior", rec: false }
       ],
+      // 6. 운동
       sports: [
         { label: "농구", val: "basketball", rec: false },
         { label: "야구·소프트볼", val: "baseball", rec: false },
@@ -603,6 +591,7 @@
         { label: "헬스", val: "gym", rec: false },
         { label: "운동을 전혀 하지 않음", val: "no_exercise", rec: true }
       ],
+      // 7. 휴가나 출장
       vacation: [
         { label: "국내 출장", val: "domestic_biz_trip", rec: false },
         { label: "해외 출장", val: "overseas_biz_trip", rec: false },
@@ -635,7 +624,6 @@
       reading: { kor: "독서", eng: "reading books", place: "library or bookstore", item: "favorite book or author", act: "read books" },
       read_to_kids: { kor: "아이에게 책 읽어주기", eng: "reading books to children", place: "living room or kids library", item: "children's storybook", act: "read stories to kids" },
       music: { kor: "음악 감상하기", eng: "listening to music", place: "place where you listen to music", item: "music genre or favorite song", act: "listen to music" },
-      music_leisure: { kor: "음악 감상하기", eng: "listening to music", place: "place where you listen to music", item: "music genre or favorite song", act: "listen to music" },
       instrument: { kor: "악기 연주하기", eng: "playing a musical instrument", place: "practice room or home", item: "musical instrument", act: "play an instrument" },
       singing: { kor: "노래 부르기/합창", eng: "singing", place: "karaoke room or choir", item: "favorite song", act: "sing songs" },
       dancing: { kor: "춤추기", eng: "dancing", place: "dance studio", item: "dance style", act: "dance" },
